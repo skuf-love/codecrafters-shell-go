@@ -57,7 +57,6 @@ func main() {
 		
 		if cmd_map_ok != true {
 			fmt.Println(cmd_name + ": command not found")
-			os.Exit(0)
 		}
 
 		if cmd.name == "exit"{
