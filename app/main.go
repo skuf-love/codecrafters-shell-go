@@ -26,9 +26,15 @@ func echoCmd(cmdArgs []string) {
 	fmt.Println(strings.Join(cmdArgs, " "))
 }
 
-func typeCmd(cmd Cmd) {
-	if cmd.builtIn {
-		fmt.Println(cmd.name + " is a shell builtin")
+func typeCmd(cmdArgs []string) {
+	cmd, ok := cmdMap[cmdArgs[0]]
+	if ok {
+		if cmd.builtIn {
+			fmt.Println(cmd.name + " is a shell builtin")
+		}
+	} else {
+		
+		fmt.Println(cmdArgs[0] + ": command not found")
 	}
 
 }
@@ -64,7 +70,7 @@ func main() {
 		}
 
 		if cmd.name == "type" {
-			typeCmd(cmd)
+			typeCmd(args)
 			continue
 		}
 
