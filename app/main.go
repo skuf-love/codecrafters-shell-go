@@ -28,7 +28,7 @@ func echoCmd(cmdArgs []string) {
 
 func typeCmd(cmd Cmd) {
 	if cmd.builtIn {
-		fmt.Println(cmd.name + " is a shell builtIn")
+		fmt.Println(cmd.name + " is a shell builtin")
 	}
 
 }
