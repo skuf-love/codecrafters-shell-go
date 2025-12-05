@@ -34,7 +34,7 @@ func typeCmd(cmdArgs []string) {
 		}
 	} else {
 		
-		fmt.Println(cmdArgs[0] + ": command not found")
+		fmt.Println(cmdArgs[0] + ": not found")
 	}
 
 }
