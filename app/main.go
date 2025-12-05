@@ -7,29 +7,66 @@ import (
 	"strings"
 )
 
-// Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
-var _ = fmt.Print
 
+type Cmd struct {
+	name string
+	builtIn bool
+}
+
+var cmdMap = map[string]Cmd{
+	"exit":  Cmd{"exit", true,},
+	"echo":  Cmd{"echo",  true,},
+	"type":  Cmd{"type", true,},
+}
+
+func exitCmd() {
+	os.Exit(0)
+}
+func echoCmd(cmdArgs []string) {
+	fmt.Println(strings.Join(cmdArgs, " "))
+}
+
+func typeCmd(cmd Cmd) {
+	if cmd.builtIn {
+		fmt.Println(cmd.name + " is a shell builtIn")
+	}
+
+}
 func main() {
 	for {
 		fmt.Print("$ ")
-		command, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err != nil {
-			fmt.Println(os.Stderr, "Error reading input:", err)
+		input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if read_err != nil {
+			fmt.Println(os.Stderr, "Error reading input:", read_err)
 			os.Exit(1)
 		}
-		trimmed_command := command[:len(command)-1]
-		if trimmed_command == "exit"{
+
+		trimmed_input := input[:len(input)-1]
+		split_input := strings.Split(trimmed_input, " ")
+
+		cmd_name := split_input[0]
+		args := split_input[1:len(split_input)]
+
+		cmd, cmd_map_ok := cmdMap[cmd_name]
+		
+		if cmd_map_ok != true {
+			fmt.Println(cmd_name + ": command not found")
 			os.Exit(0)
 		}
-		echo_cmd := "echo"
-		
-		cmd := strings.Split(trimmed_command, " ")
-		if cmd[0] == echo_cmd {
-			args := cmd[1:len(cmd)]
-			fmt.Println(strings.Join(args, " "))
+
+		if cmd.name == "exit"{
+			exitCmd()
+		}
+
+		if cmd.name == "echo" {
+			echoCmd(args)
 			continue
 		}
-		fmt.Println(trimmed_command + ": command not found")
+
+		if cmd.name == "type" {
+			typeCmd(cmd)
+			continue
+		}
+
 	}
 }
