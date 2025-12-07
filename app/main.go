@@ -11,12 +11,13 @@ import (
 type Cmd struct {
 	name string
 	builtIn bool
+	path string
 }
 
 var cmdMap = map[string]Cmd{
-	"exit":  Cmd{"exit", true,},
-	"echo":  Cmd{"echo",  true,},
-	"type":  Cmd{"type", true,},
+	"exit":  Cmd{"exit", true, "builtin",},
+	"echo":  Cmd{"echo",  true, "builtin",},
+	"type":  Cmd{"type", true, "builtin",},
 }
 
 func exitCmd() {
@@ -31,14 +32,49 @@ func typeCmd(cmdArgs []string) {
 	if ok {
 		if cmd.builtIn {
 			fmt.Println(cmd.name + " is a shell builtin")
+		} else {
+			fmt.Println(cmd.name + " is " + cmd.path)
 		}
-	} else {
-		
-		fmt.Println(cmdArgs[0] + ": not found")
+		return
 	}
+	fmt.Println(cmdArgs[0] + ": not found")
+}
 
+func LoadBinPaths(binCmds *map[string]Cmd)  {
+	pathVar := os.Getenv("PATH")
+
+	paths := strings.Split(pathVar, ":")
+		
+	for _, path := range paths {
+
+		dirEntries, err := os.ReadDir(path)
+		if err != nil {
+			continue
+		}
+
+		for _, dirEntry := range dirEntries {
+			binPath := path + "/" + dirEntry.Name()
+
+
+			fileInfo, err := os.Stat(binPath)
+			if err != nil {
+				continue
+			}
+			if fileInfo.IsDir() {
+				continue
+			}
+			if _, ok := (*binCmds)[dirEntry.Name()]; ok {
+				continue
+			}
+			if fileInfo.Mode().IsRegular() {
+				(*binCmds)[dirEntry.Name()] = Cmd{dirEntry.Name(), false, binPath}
+			}
+		}
+	}
+	
 }
 func main() {
+	LoadBinPaths(&cmdMap)
 	for {
 		fmt.Print("$ ")
 		input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
@@ -75,3 +111,4 @@ func main() {
 
 	}
 }
+
