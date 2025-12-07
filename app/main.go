@@ -43,7 +43,7 @@ func main() {
 		fmt.Print("$ ")
 		input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if read_err != nil {
-			fmt.Println(os.Stderr, "Error reading input:", read_err)
+			fmt.Fprintln(os.Stderr, "Error reading input:", read_err)
 			os.Exit(1)
 		}
 
