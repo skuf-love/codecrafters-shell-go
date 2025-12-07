@@ -99,6 +99,9 @@ func TestLocateExecutableFiles(t *testing.T) {
 	assertCmd("type type\n", "type is a shell builtin", stdin, stdoutReader, t)
 	assertCmd("type exit\n", "exit is a shell builtin", stdin, stdoutReader, t)
 
+	assertCmd("type grep\n", "grep is /usr/bin/grep", stdin, stdoutReader, t)
+	assertCmd("type invalid_command\n", "invalid_command: not found", stdin, stdoutReader, t)
+
 	sendInput("exit\n", t, stdin)
 
 	stdin.Close()
