@@ -73,7 +73,6 @@ var cmdMap map[string]Executable
 
 func (ex Executable) Run(args []string){
 	cmd := exec.Command(ex.path, args...)
-	fmt.Println("Running: " + ex.path + " " + strings.Join(args, " "))
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
