@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"os"
 	"strings"
+	"os/exec"
 )
 
 
@@ -34,7 +35,7 @@ func typeCmd(cmdArgs []string) {
 	fmt.Println(cmdArgs[0] + ": not found")
 }
 
-func LoadBinPaths(binCmds *map[string]Cmd)  {
+func LoadBinPaths(binExecutables *map[string]Executable)  {
 	pathVar := os.Getenv("PATH")
 
 	paths := strings.Split(pathVar, ":")
@@ -57,26 +58,37 @@ func LoadBinPaths(binCmds *map[string]Cmd)  {
 			if fileInfo.IsDir() {
 				continue
 			}
-			if _, ok := (*binCmds)[dirEntry.Name()]; ok {
+			if _, ok := (*binExecutables)[dirEntry.Name()]; ok {
 				continue
 			}
 			mode := fileInfo.Mode()
 			if mode.IsRegular() && mode.Perm()&0111 != 0 {
-				(*binCmds)[dirEntry.Name()] = Cmd{dirEntry.Name(), false, binPath}
+				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath}
 			}
 		}
 	}
 	
 }
-var cmdMap map[string]Cmd
+var cmdMap map[string]Executable
+
+func (ex Executable) Run(args []string){
+	cmd := exec.Command(ex.path, args...)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+	
+	fmt.Printf("%s", string(output))
+}
 func main() {
 
-	cmdMap = make(map[string]Cmd)
+	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
 
-	cmdMap["exit"] = Cmd{"exit", true, "builtin",}
-	cmdMap["echo"] = Cmd{"echo",  true, "builtin",}
-	cmdMap["type"] = Cmd{"type", true, "builtin",}
+	cmdMap["exit"] = Executable{"exit", true, "builtin",}
+	cmdMap["echo"] = Executable{"echo",  true, "builtin",}
+	cmdMap["type"] = Executable{"type", true, "builtin",}
 
 	for {
 		fmt.Print("$ ")
@@ -96,21 +108,24 @@ func main() {
 		
 		if cmd_map_ok != true {
 			fmt.Println(cmd_name + ": command not found")
+			continue
 		}
 
 		if cmd.name == "exit"{
-			exitCmd()
+			exitExecutable()
 		}
 
 		if cmd.name == "echo" {
-			echoCmd(args)
+			echoExecutable(args)
 			continue
 		}
 
 		if cmd.name == "type" {
-			typeCmd(args)
+			typeExecutable(args)
 			continue
 		}
+
+		cmd.Run(args)
 
 	}
 }
