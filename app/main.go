@@ -14,12 +14,6 @@ type Cmd struct {
 	path string
 }
 
-var cmdMap = map[string]Cmd{
-	"exit":  Cmd{"exit", true, "builtin",},
-	"echo":  Cmd{"echo",  true, "builtin",},
-	"type":  Cmd{"type", true, "builtin",},
-}
-
 func exitCmd() {
 	os.Exit(0)
 }
@@ -73,8 +67,16 @@ func LoadBinPaths(binCmds *map[string]Cmd)  {
 	}
 	
 }
+var cmdMap map[string]Cmd
 func main() {
+
+	cmdMap = make(map[string]Cmd)
 	LoadBinPaths(&cmdMap)
+
+	cmdMap["exit"] = Cmd{"exit", true, "builtin",}
+	cmdMap["echo"] = Cmd{"echo",  true, "builtin",}
+	cmdMap["type"] = Cmd{"type", true, "builtin",}
+
 	for {
 		fmt.Print("$ ")
 		input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
