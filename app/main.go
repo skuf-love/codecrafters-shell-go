@@ -9,20 +9,20 @@ import (
 )
 
 
-type Cmd struct {
+type Executable struct {
 	name string
 	builtIn bool
 	path string
 }
 
-func exitCmd() {
+func exitExecutable() {
 	os.Exit(0)
 }
-func echoCmd(cmdArgs []string) {
+func echoExecutable(cmdArgs []string) {
 	fmt.Println(strings.Join(cmdArgs, " "))
 }
 
-func typeCmd(cmdArgs []string) {
+func typeExecutable(cmdArgs []string) {
 	cmd, ok := cmdMap[cmdArgs[0]]
 	if ok {
 		if cmd.builtIn {
@@ -73,6 +73,7 @@ var cmdMap map[string]Executable
 
 func (ex Executable) Run(args []string){
 	cmd := exec.Command(ex.path, args...)
+	fmt.Println("Running: " + ex.path + " " + strings.Join(args, " "))
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
