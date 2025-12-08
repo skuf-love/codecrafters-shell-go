@@ -72,7 +72,7 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 var cmdMap map[string]Executable
 
 func (ex Executable) Run(args []string){
-	cmd := exec.Command(ex.path, args...)
+	cmd := exec.Command(ex.name, args...)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
