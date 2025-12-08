@@ -34,6 +34,13 @@ func typeExecutable(cmdArgs []string) {
 	}
 	fmt.Println(cmdArgs[0] + ": not found")
 }
+func pwdExecutable() {
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	fmt.Println(wd) 
+}
 
 func LoadBinPaths(binExecutables *map[string]Executable)  {
 	pathVar := os.Getenv("PATH")
@@ -123,6 +130,10 @@ func main() {
 
 		if cmd.name == "type" {
 			typeExecutable(args)
+			continue
+		}
+		if cmd.name == "pwd" {
+			pwdExecutable()
 			continue
 		}
 
