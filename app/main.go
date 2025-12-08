@@ -60,12 +60,9 @@ func LoadBinPaths(binCmds *map[string]Cmd)  {
 			if _, ok := (*binCmds)[dirEntry.Name()]; ok {
 				continue
 			}
-			if fileInfo.Mode().IsRegular() {
-				if _, ok := (*binCmds)[dirEntry.Name()]; ok {
-					continue
-				}else{
-					(*binCmds)[dirEntry.Name()] = Cmd{dirEntry.Name(), false, binPath}
-				}
+			mode := fileInfo.Mode()
+			if mode.IsRegular() && mode.Perm()&0111 != 0 {
+				(*binCmds)[dirEntry.Name()] = Cmd{dirEntry.Name(), false, binPath}
 			}
 		}
 	}
