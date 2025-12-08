@@ -89,6 +89,7 @@ func main() {
 	cmdMap["exit"] = Executable{"exit", true, "builtin",}
 	cmdMap["echo"] = Executable{"echo",  true, "builtin",}
 	cmdMap["type"] = Executable{"type", true, "builtin",}
+	cmdMap["pwd"] = Executable{"pwd", true, "builtin",}
 
 	for {
 		fmt.Print("$ ")
