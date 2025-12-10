@@ -84,33 +84,42 @@ func assertCmd(input string, expectedOutput string, stdin io.WriteCloser, stdout
  	}
 }
 
-func tearDown(t *testing.T, cmd *exec.Cmd, stdin io.WriteCloser, stdout, stderr io.ReadCloser) {
-	sendInput("exit\n", t, stdin)
+func tearDown(c ShellTestContext) {
+	sendInput("exit\n", c.t, c.stdin)
 
-	stdin.Close()
+	c.stdin.Close()
 
-	stderrBytes, err := io.ReadAll(stderr)
-	stdoutBytes, err := io.ReadAll(stdout)
+	stderrBytes, err := io.ReadAll(c.stderr)
+	stdoutBytes, err := io.ReadAll(c.stdout)
 
-	if err := cmd.Wait(); err != nil {
-		t.Fatalf("command failed: %s", err)
+	if err := c.cmd.Wait(); err != nil {
+		c.t.Fatalf("command failed: %s", err)
 	}
 
 	if err != nil {
-		t.Fatal(err)
+		c.t.Fatal(err)
 	}
 
 
 	if err != nil {
-		t.Fatal(err)
+		c.t.Fatal(err)
 	}
 	
 	fmt.Printf("%v",string(stdoutBytes))
 
 
 	if len(stderrBytes) > 0 {
-		t.Logf("Stderr: %s", string(stderrBytes))
+		c.t.Logf("Stderr: %s", string(stderrBytes))
 	}
+}
+
+type ShellTestContext struct {
+	t *testing.T
+	cmd *exec.Cmd
+	stdin io.WriteCloser
+	stdout io.ReadCloser
+	stderr io.ReadCloser
+	stdoutReader *bufio.Reader
 }
 
 func TestLocateExecutableFiles(t *testing.T) {
@@ -122,6 +131,15 @@ func TestLocateExecutableFiles(t *testing.T) {
  	if err := cmd.Start(); err != nil {
  		t.Fatal(err)
  	}
+	
+	context := ShellTestContext{
+		t,
+		cmd,
+		stdin,
+		stdout,
+		stderr,
+		stdoutReader,
+	}
 	eatInitPrompt(stdoutReader, t)
 
 	assertCmd("type echo\n", "echo is a shell builtin", stdin, stdoutReader, t)
@@ -131,6 +149,6 @@ func TestLocateExecutableFiles(t *testing.T) {
 	assertCmd("type grep\n", "grep is /usr/bin/grep", stdin, stdoutReader, t)
 	assertCmd("type invalid_command\n", "invalid_command: not found", stdin, stdoutReader, t)
 
-	tearDown(t, cmd, stdin, stdout, stderr)
+	tearDown(context)
 }
 
