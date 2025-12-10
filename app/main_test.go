@@ -42,10 +42,10 @@ func SetupPipes(t *testing.T, cmd *exec.Cmd) (stdin io.WriteCloser, stdout, stde
 	return stdin, stdout, stderr
 }
 
-func sendInput(input string, t *testing.T, stdin io.WriteCloser) {
-	_, err := stdin.Write([]byte(input))
+func (c ShellTestContext) sendInput(input string) {
+	_, err := c.stdin.Write([]byte(input))
 	if err != nil {
-		t.Fatal(err)
+		c.t.Fatal(err)
 	}
 }
 
@@ -67,7 +67,7 @@ func readUntilPrompt(reader *bufio.Reader, t *testing.T) (string, error) {
 }
 
 func (c ShellTestContext) assertCmd(input string, expectedOutput string) {
-	sendInput(input, c.t, c.stdin)
+	c.sendInput(input)
 
 	output, err := readUntilPrompt(c.stdoutReader, c.t)
 
@@ -85,7 +85,7 @@ func (c ShellTestContext) assertCmd(input string, expectedOutput string) {
 }
 
 func (c ShellTestContext) tearDown() {
-	sendInput("exit\n", c.t, c.stdin)
+	c.sendInput("exit\n")
 
 	c.stdin.Close()
 
