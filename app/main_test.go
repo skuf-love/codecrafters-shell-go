@@ -161,28 +161,35 @@ func TestLocateExecutableFiles(t *testing.T) {
 func TestPwd(t *testing.T) { 
 	context := InitTest(t)
 	
-	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+	home_path := os.Getenv("HOME")
+	context.assertCmd("pwd\n", home_path + "/study/go/codecrafters-shell-go/app")
 
 	context.tearDown()
 }
 
 func TestCd(t *testing.T) { 
 	context := InitTest(t)
-	
+	home_path := os.Getenv("HOME")
+
 	context.sendInput("cd ~\n")
-	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("pwd\n", home_path)
 
 	context.sendInput("cd .\n")
-	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("pwd\n", home_path)
 
 	context.sendInput("cd ..\n")
-	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("pwd\n", "/Users")
 
-	context.sendInput("cd /Users/kostyamalinovskiy/study\n")
-	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+	context.sendInput("cd " + home_path + "/study\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("pwd\n", home_path + "/study")
 
 	context.sendInput("cd go\n")
-	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("pwd\n", home_path + "/study/go")
 
 	context.tearDown()
 }

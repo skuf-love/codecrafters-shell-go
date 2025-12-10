@@ -34,12 +34,14 @@ func typeExecutable(cmdArgs []string) {
 	}
 	fmt.Println(cmdArgs[0] + ": not found")
 }
-func cdExecutable() {
-	wd, err := os.Getwd()
-	if err != nil {
-		fmt.Printf("%v", err)
+func cdExecutable(path string) {
+	if path == "~" {
+		path = os.Getenv("HOME")
 	}
-	fmt.Println(wd) 
+	err := os.Chdir(path)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
 }
 func pwdExecutable() {
 	wd, err := os.Getwd()
@@ -145,7 +147,7 @@ func main() {
 			continue
 		}
 		if cmd.name == "cd" {
-			cdExecutable()
+			cdExecutable(args[0])
 			continue
 		}
 
