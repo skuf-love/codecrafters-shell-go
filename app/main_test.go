@@ -84,7 +84,7 @@ func assertCmd(input string, expectedOutput string, stdin io.WriteCloser, stdout
  	}
 }
 
-func tearDown(c ShellTestContext) {
+func (c ShellTestContext) tearDown() {
 	sendInput("exit\n", c.t, c.stdin)
 
 	c.stdin.Close()
@@ -149,6 +149,6 @@ func TestLocateExecutableFiles(t *testing.T) {
 	assertCmd("type grep\n", "grep is /usr/bin/grep", stdin, stdoutReader, t)
 	assertCmd("type invalid_command\n", "invalid_command: not found", stdin, stdoutReader, t)
 
-	tearDown(context)
+	context.tearDown()
 }
 
