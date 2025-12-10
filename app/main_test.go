@@ -66,21 +66,21 @@ func readUntilPrompt(reader *bufio.Reader, t *testing.T) (string, error) {
 	return line, nil
 }
 
-func assertCmd(input string, expectedOutput string, stdin io.WriteCloser, stdoutReader *bufio.Reader, t *testing.T) {
-	sendInput(input, t, stdin)
+func (c ShellTestContext) assertCmd(input string, expectedOutput string) {
+	sendInput(input, c.t, c.stdin)
 
-	output, err := readUntilPrompt(stdoutReader, t)
+	output, err := readUntilPrompt(c.stdoutReader, c.t)
 
 	if err != nil {
-	    t.Fatalf("Failed to read initial prompt: %v", err)
+	    c.t.Fatalf("Failed to read initial prompt: %v", err)
 	}
 
  	if !strings.Contains(output, expectedOutput) {
- 		t.Errorf("----")
- 		t.Errorf("Command: %s", input)
- 		t.Errorf("expected output: %s", expectedOutput)
- 		t.Errorf("Received output: %s", output)
- 		t.Errorf("----")
+ 		c.t.Errorf("----")
+ 		c.t.Errorf("Command: %s", input)
+ 		c.t.Errorf("expected output: %s", expectedOutput)
+ 		c.t.Errorf("Received output: %s", output)
+ 		c.t.Errorf("----")
  	}
 }
 
@@ -121,18 +121,18 @@ type ShellTestContext struct {
 	stderr io.ReadCloser
 	stdoutReader *bufio.Reader
 }
-
-func TestLocateExecutableFiles(t *testing.T) {
+func InitTest(t *testing.T) ShellTestContext {
 	cmd := exec.Command("./testapp")
 	stdin, stdout, stderr := SetupPipes(t, cmd)
-	 
 	stdoutReader := bufio.NewReader(stdout)
 
  	if err := cmd.Start(); err != nil {
  		t.Fatal(err)
  	}
 	
-	context := ShellTestContext{
+	eatInitPrompt(stdoutReader, t)
+
+	return ShellTestContext{
 		t,
 		cmd,
 		stdin,
@@ -140,14 +140,18 @@ func TestLocateExecutableFiles(t *testing.T) {
 		stderr,
 		stdoutReader,
 	}
-	eatInitPrompt(stdoutReader, t)
+}
 
-	assertCmd("type echo\n", "echo is a shell builtin", stdin, stdoutReader, t)
-	assertCmd("type type\n", "type is a shell builtin", stdin, stdoutReader, t)
-	assertCmd("type exit\n", "exit is a shell builtin", stdin, stdoutReader, t)
+func TestLocateExecutableFiles(t *testing.T) {
+	
+	context := InitTest(t)
 
-	assertCmd("type grep\n", "grep is /usr/bin/grep", stdin, stdoutReader, t)
-	assertCmd("type invalid_command\n", "invalid_command: not found", stdin, stdoutReader, t)
+	context.assertCmd("type echo\n", "echo is a shell builtin")
+	context.assertCmd("type type\n", "type is a shell builtin")
+	context.assertCmd("type exit\n", "exit is a shell builtin")
+
+	context.assertCmd("type grep\n", "grep is /usr/bin/grep")
+	context.assertCmd("type invalid_command\n", "invalid_command: not found")
 
 	context.tearDown()
 }
