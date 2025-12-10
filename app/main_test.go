@@ -75,7 +75,7 @@ func (c ShellTestContext) assertCmd(input string, expectedOutput string) {
 	    c.t.Fatalf("Failed to read initial prompt: %v", err)
 	}
 
- 	if !strings.Contains(output, expectedOutput) {
+ 	if strings.Trim(output, " ") != expectedOutput {
  		c.t.Errorf("----")
  		c.t.Errorf("Command: %s", input)
  		c.t.Errorf("expected output: %s", expectedOutput)
