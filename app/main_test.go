@@ -84,24 +84,7 @@ func assertCmd(input string, expectedOutput string, stdin io.WriteCloser, stdout
  	}
 }
 
-func TestLocateExecutableFiles(t *testing.T) {
-	cmd := exec.Command("./testapp")
-	stdin, stdout, stderr := SetupPipes(t, cmd)
-	 
-	stdoutReader := bufio.NewReader(stdout)
-
- 	if err := cmd.Start(); err != nil {
- 		t.Fatal(err)
- 	}
-	eatInitPrompt(stdoutReader, t)
-
-	assertCmd("type echo\n", "echo is a shell builtin", stdin, stdoutReader, t)
-	assertCmd("type type\n", "type is a shell builtin", stdin, stdoutReader, t)
-	assertCmd("type exit\n", "exit is a shell builtin", stdin, stdoutReader, t)
-
-	assertCmd("type grep\n", "grep is /usr/bin/grep", stdin, stdoutReader, t)
-	assertCmd("type invalid_command\n", "invalid_command: not found", stdin, stdoutReader, t)
-
+func tearDown(t *testing.T, cmd *exec.Cmd, stdin io.WriteCloser, stdout, stderr io.ReadCloser) {
 	sendInput("exit\n", t, stdin)
 
 	stdin.Close()
@@ -128,7 +111,26 @@ func TestLocateExecutableFiles(t *testing.T) {
 	if len(stderrBytes) > 0 {
 		t.Logf("Stderr: %s", string(stderrBytes))
 	}
+}
 
+func TestLocateExecutableFiles(t *testing.T) {
+	cmd := exec.Command("./testapp")
+	stdin, stdout, stderr := SetupPipes(t, cmd)
+	 
+	stdoutReader := bufio.NewReader(stdout)
 
+ 	if err := cmd.Start(); err != nil {
+ 		t.Fatal(err)
+ 	}
+	eatInitPrompt(stdoutReader, t)
+
+	assertCmd("type echo\n", "echo is a shell builtin", stdin, stdoutReader, t)
+	assertCmd("type type\n", "type is a shell builtin", stdin, stdoutReader, t)
+	assertCmd("type exit\n", "exit is a shell builtin", stdin, stdoutReader, t)
+
+	assertCmd("type grep\n", "grep is /usr/bin/grep", stdin, stdoutReader, t)
+	assertCmd("type invalid_command\n", "invalid_command: not found", stdin, stdoutReader, t)
+
+	tearDown(t, cmd, stdin, stdout, stderr)
 }
 
