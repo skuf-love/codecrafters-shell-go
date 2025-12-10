@@ -156,3 +156,10 @@ func TestLocateExecutableFiles(t *testing.T) {
 	context.tearDown()
 }
 
+func TestPwd(t *testing.T) { 
+	context := InitTest(t)
+	
+	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+
+	context.tearDown()
+}
