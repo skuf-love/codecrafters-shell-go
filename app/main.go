@@ -34,6 +34,13 @@ func typeExecutable(cmdArgs []string) {
 	}
 	fmt.Println(cmdArgs[0] + ": not found")
 }
+func cdExecutable() {
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	fmt.Println(wd) 
+}
 func pwdExecutable() {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -97,6 +104,7 @@ func main() {
 	cmdMap["echo"] = Executable{"echo",  true, "builtin",}
 	cmdMap["type"] = Executable{"type", true, "builtin",}
 	cmdMap["pwd"] = Executable{"pwd", true, "builtin",}
+	cmdMap["cd"] = Executable{"cd", true, "builtin",}
 
 	for {
 		fmt.Print("$ ")
@@ -134,6 +142,10 @@ func main() {
 		}
 		if cmd.name == "pwd" {
 			pwdExecutable()
+			continue
+		}
+		if cmd.name == "cd" {
+			cdExecutable()
 			continue
 		}
 

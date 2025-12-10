@@ -163,3 +163,24 @@ func TestPwd(t *testing.T) {
 
 	context.tearDown()
 }
+
+func TestCd(t *testing.T) { 
+	context := InitTest(t)
+	
+	context.sendInput("cd ~\n")
+	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy")
+
+	context.sendInput("cd .\n")
+	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+
+	context.sendInput("cd ..\n")
+	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+
+	context.sendInput("cd /Users/kostyamalinovskiy/study\n")
+	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+
+	context.sendInput("cd go\n")
+	context.assertCmd("pwd\n", "/Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app")
+
+	context.tearDown()
+}
