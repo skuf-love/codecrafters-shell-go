@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"os/exec"
+	"github.com/codecrafters-io/shell-starter-go/app/shell_args"
 )
 
 
@@ -126,8 +127,8 @@ func main() {
 			os.Exit(1)
 		}
 
-		trimmed_input := input[:len(input)-1]
-		split_input := strings.Split(trimmed_input, " ")
+		// split_input := strings.Split(trimmed_input, " ")
+		split_input := shell_args.ParseInput(input)
 
 		cmd_name := split_input[0]
 		args := split_input[1:len(split_input)]
