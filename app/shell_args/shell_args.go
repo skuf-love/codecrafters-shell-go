@@ -16,8 +16,10 @@ func ParseInput(input string) []string {
 			continue
 		}
 		if char == ' ' && !inside_quotes {
-			args = append(args, string(current_arg))
-			current_arg = make([]rune, 0)
+			if len(current_arg) > 0 {
+				args = append(args, string(current_arg))
+				current_arg = make([]rune, 0)
+			}
 		} else {
 			current_arg = append(current_arg, char)
 		}
