@@ -5,7 +5,7 @@ import (
 )
 
 func ParseInput(input string) []string {
-	trimmed_input := input[:len(input)-1]
+	trimmed_input, _ := strings.CutSuffix(input, "\n")
 
 	return strings.Split(trimmed_input, " ")
 }
