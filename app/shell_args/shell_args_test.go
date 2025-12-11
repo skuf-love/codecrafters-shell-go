@@ -18,7 +18,7 @@ func TestParseInput(t *testing.T) {
 
 	// echo 'hello    world'	hello    world
 	input = "echo 'hello    world'"
-	expected = []string{"hello    world"}
+	expected = []string{"echo", "hello    world"}
 	result = ParseInput(input)
 
 	if !reflect.DeepEqual(result, expected) {
@@ -28,7 +28,7 @@ func TestParseInput(t *testing.T) {
 
 	// echo hello    world		hello world
 	input = "echo hello    world"
-	expected = []string{"hello world"}
+	expected = []string{"echo", "hello", "world"}
 	result = ParseInput(input)
 
 	if !reflect.DeepEqual(result, expected) {
@@ -38,7 +38,7 @@ func TestParseInput(t *testing.T) {
 	// echo 'hello''world'		helloworld
 
 	input = "echo 'hello''world'"
-	expected = []string{"hello world"}
+	expected = []string{"echo", "helloworld"}
 	result = ParseInput(input)
 
 	if !reflect.DeepEqual(result, expected) {
@@ -46,7 +46,7 @@ func TestParseInput(t *testing.T) {
 	}
 	// echo hello''world		helloworld
 	input = "echo 'hello''world"
-	expected = []string{"hello world"}
+	expected = []string{"echo", "helloworld"}
 	result = ParseInput(input)
 
 	if !reflect.DeepEqual(result, expected) {
