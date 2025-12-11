@@ -38,7 +38,17 @@ func cdExecutable(path string) {
 	if path == "~" {
 		path = os.Getenv("HOME")
 	}
-	err := os.Chdir(path)
+	stat, err := os.Stat(path)
+	if err != nil {
+		fmt.Printf("cd: %v: No such file or directory\n" ,path)
+		// fmt.Printf("%v\n", err)
+		return
+	}
+	if !stat.IsDir() {
+		fmt.Printf("%v\n", err)
+		return
+	}
+	err = os.Chdir(path)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}

@@ -191,5 +191,7 @@ func TestCd(t *testing.T) {
 	readUntilPrompt(context.stdoutReader, context.t)
 	context.assertCmd("pwd\n", home_path + "/study/go")
 
+	context.assertCmd("cd nope\n", "cd: nope: No such file or directory")
+
 	context.tearDown()
 }
