@@ -195,3 +195,11 @@ func TestCd(t *testing.T) {
 
 	context.tearDown()
 }
+
+func TestEcho(t *testing.T) { 
+	context := InitTest(t)
+
+	context.assertCmd("echo 'hello   world'\n", "hello   world")
+
+	context.tearDown()
+}
