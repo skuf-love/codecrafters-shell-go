@@ -2,6 +2,7 @@ package shell_args
 
 import (
 	"strings"
+	"slices"
 	//"fmt"
 )
 
@@ -53,7 +54,21 @@ func (c *parseContext) singleQuoteRead(char rune) {
 	c.currentArg = append(c.currentArg, char)
 }
 
+var doubleQuoteEscaped = []rune{'\\', '"'}
+
 func (c *parseContext) doubleQuoteRead(char rune) {
+	if c.escape {
+		if !slices.Contains(doubleQuoteEscaped, char){
+			c.currentArg = append(c.currentArg, '\\')
+		}
+		c.currentArg = append(c.currentArg, char)
+		c.escape = false
+		return
+	}
+	if char == '\\' {
+		c.escape = true
+		return
+	}
 	if char == '"' {
 		//fmt.Printf("%v - Switching from D to N\n", string(char))
 		c.mode = "normal"

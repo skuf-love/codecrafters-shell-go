@@ -112,11 +112,18 @@ func TestDoubleQuotesAgrgsParse(t *testing.T) {
 }
 
 func TestBackslashParse(t *testing.T)  {
-
 	AssertParse("echo \\'\\\"hello world\\\"\\'", []string{"echo", "'\"hello", "world\"'"}, t)
 
 	AssertParse("echo world\\ \\ \\ \\ \\ \\ script", []string{"echo", "world      script"}, t)
-	
-	// AssertParse("cat \"/tmp/pig/f\\n41\" \"/tmp/pig/f\\90\" \"/tmp/pig/f'\\'27\"", []string{"cat", "/tmp/pig/fn41", "/tmp/pig/f90", ""}, t)
+}
+
+func TestDoubleQuoteBackslashParse(t *testing.T)  {
+	// echo "hello'script'\\n'world"
+	// echo hello'script'\n'world
+	AssertParse("echo \"hello'script'\\n'world\"", []string{"echo", "hello'script'\\n'world"}, t)
+
+	//echo "hello\"insidequotes"script\"
+	//hello"insidequotesscript"
+	AssertParse("echo \"hello\\\"insidequotes\"script\\\"", []string{"echo", "hello\"insidequotesscript\""}, t)
 }
 
