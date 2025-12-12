@@ -13,6 +13,15 @@ type parseContext struct{
 }
 
 func (c *parseContext) normalRead(char rune) {
+	if c.escape {
+		c.currentArg = append(c.currentArg, char)
+		c.escape = false
+		return
+	}
+	if char == '\\' {
+		c.escape = true
+		return
+	}
 	if char == '\'' {
 		//fmt.Printf("%v - Switching from N to S\n", string(char))
 		c.mode = "single_quote"
@@ -64,15 +73,6 @@ func ParseInput(input string) []string {
 		false,
 	}
 	for _, char := range trimmed_input {
-		if context.escape {
-			context.currentArg = append(context.currentArg, char)
-			context.escape = false
-			continue
-		}
-		if char == '\\' {
-			context.escape = true
-			continue
-		}
 		switch context.mode {
 		case "normal":
 			context.normalRead(char)

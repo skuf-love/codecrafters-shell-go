@@ -117,5 +117,6 @@ func TestBackslashParse(t *testing.T)  {
 
 	AssertParse("echo world\\ \\ \\ \\ \\ \\ script", []string{"echo", "world      script"}, t)
 	
+	// AssertParse("cat \"/tmp/pig/f\\n41\" \"/tmp/pig/f\\90\" \"/tmp/pig/f'\\'27\"", []string{"cat", "/tmp/pig/fn41", "/tmp/pig/f90", ""}, t)
 }
 
