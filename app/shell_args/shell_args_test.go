@@ -102,3 +102,23 @@ func TestDoubleQuotesAgrgsParse(t *testing.T) {
 	}
 
 }
+
+func TestBackslashParse(t *testing.T)  {
+
+	input := "echo \\'\\\"hello world\\\"\\'"
+	expected := []string{"echo", "'\"hello", "world\"'"}
+	result := ParseInput(input)
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
+	}
+
+	input = "echo world\\ \\ \\ \\ \\ \\ script"
+	expected = []string{"echo", "world      script"}
+	result = ParseInput(input)
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
+	}
+	
+}

@@ -9,6 +9,7 @@ type parseContext struct{
 	currentArg []rune
 	args []string
 	mode string
+	escape bool
 }
 
 func (c *parseContext) normalRead(char rune) {
@@ -60,8 +61,18 @@ func ParseInput(input string) []string {
 		make([]rune, 0),
 		make([]string, 0),
 		"normal",
+		false,
 	}
 	for _, char := range trimmed_input {
+		if context.escape {
+			context.currentArg = append(context.currentArg, char)
+			context.escape = false
+			continue
+		}
+		if char == '\\' {
+			context.escape = true
+			continue
+		}
 		switch context.mode {
 		case "normal":
 			context.normalRead(char)
