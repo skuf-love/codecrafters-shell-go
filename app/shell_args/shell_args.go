@@ -2,30 +2,78 @@ package shell_args
 
 import (
 	"strings"
+	//"fmt"
 )
 
+type parseContext struct{
+	currentArg []rune
+	args []string
+	mode string
+}
+
+func (c *parseContext) normalRead(char rune) {
+	if char == '\'' {
+		//fmt.Printf("%v - Switching from N to S\n", string(char))
+		c.mode = "single_quote"
+		return
+	}
+	if char == '"' {
+		//fmt.Printf("%v - Switching from N to D\n", string(char))
+		c.mode = "double_quote"
+		return
+	}
+	if char == ' ' && len(c.currentArg) == 0 {
+		return 
+	}
+	if char == ' ' {
+		c.args = append(c.args, string(c.currentArg))
+		c.currentArg = make([]rune, 0)
+	}else{
+		//fmt.Printf("NORMAL Append '%v'\n", string(char))
+		c.currentArg = append(c.currentArg, char)
+	}
+}
+func (c *parseContext) singleQuoteRead(char rune) {
+	if char == '\'' {
+		//fmt.Printf("%v - Switching from S to N\n", string(char))
+		c.mode = "normal"
+		return
+	}
+	//fmt.Printf("SINGLE Append '%v'\n", string(char))
+	c.currentArg = append(c.currentArg, char)
+}
+
+func (c *parseContext) doubleQuoteRead(char rune) {
+	if char == '"' {
+		//fmt.Printf("%v - Switching from D to N\n", string(char))
+		c.mode = "normal"
+		return
+	}
+	//fmt.Printf("DOUBLE Append '%v'\n", string(char))
+	c.currentArg = append(c.currentArg, char)
+}
 func ParseInput(input string) []string {
 	trimmed_input, _ := strings.CutSuffix(input, "\n")
+	//fmt.Println(trimmed_input)
 	
-	args := make([]string, 0)
-	current_arg := make([]rune, 0)
-	inside_quotes := false
+	context := parseContext{
+		make([]rune, 0),
+		make([]string, 0),
+		"normal",
+	}
 	for _, char := range trimmed_input {
-		if char == '\'' {
-			inside_quotes = !inside_quotes
-			continue
+		switch context.mode {
+		case "normal":
+			context.normalRead(char)
+		case "single_quote":
+			context.singleQuoteRead(char)
+		case "double_quote":
+			context.doubleQuoteRead(char)
 		}
-		if char == ' ' && !inside_quotes {
-			if len(current_arg) > 0 {
-				args = append(args, string(current_arg))
-				current_arg = make([]rune, 0)
-			}
-		} else {
-			current_arg = append(current_arg, char)
-		}
-
 	}
 
-	args = append(args, string(current_arg))
-	return args
+	context.args = append(context.args, string(context.currentArg))
+	return context.args
 }
+
+
