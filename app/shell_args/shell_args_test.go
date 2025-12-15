@@ -8,107 +8,42 @@ import(
 func AssertParse(input string, expected []string, t *testing.T) {
 	result := ParseInput(input)
 
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
+	command := expected[0]
+	arguments := make([]string, 0)
+	if len(expected) > 1 {
+		arguments = expected[1:len(expected)-1]
+	}
+	if !reflect.DeepEqual(result.arguments, arguments) || result.commandName != command {
+		t.Errorf("ParseInput(%q)", input)
+		t.Errorf("Command = %v, expected %v", result.commandName, command)
+		t.Errorf("Arguments = %v, expected %v", result.arguments, arguments)
+		t.Errorf("---")
 	}
 }
 
 func TestQuotesAgrgsParse(t *testing.T) {
 
-	input := "echo"
-	expected := []string{"echo"}
-	result := ParseInput(input)
+	AssertParse("echo", []string{"echo"}, t)
 
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
+	AssertParse("echo 'hello    world'", []string{"echo", "hello    world"}, t)
+
+	AssertParse("echo hello    world", []string{"echo", "hello", "world"}, t)
 
 
-	// echo 'hello    world'	hello    world
-	input = "echo 'hello    world'"
-	expected = []string{"echo", "hello    world"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-
-
-	// echo hello    world		hello world
-	input = "echo hello    world"
-	expected = []string{"echo", "hello", "world"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-
-	// echo 'hello''world'		helloworld
-
-	input = "echo 'hello''world'"
-	expected = []string{"echo", "helloworld"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-	// echo hello''world		helloworld
-	input = "echo 'hello''world"
-	expected = []string{"echo", "helloworld"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
+	AssertParse("echo 'hello''world'", []string{"echo", "helloworld"}, t)
+	AssertParse("echo 'hello''world", []string{"echo", "helloworld"}, t)
 
 }
 
 func TestDoubleQuotesAgrgsParse(t *testing.T) {
 
-	input := "echo"
-	expected := []string{"echo"}
-	result := ParseInput(input)
+	AssertParse("echo \"hello    world\"", []string{"echo", "hello    world"}, t)
 
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
+	AssertParse("echo \"hello\"\"world\"", []string{"echo", "helloworld"}, t)
 
+	AssertParse("echo \"hello\" \"world\"", []string{"echo", "hello", "world"}, t)
 
-	// echo 'hello    world'	hello    world
-	input = "echo \"hello    world\""
-	expected = []string{"echo", "hello    world"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-
-
-
-	input = "echo \"hello\"\"world\""
-	expected = []string{"echo", "helloworld"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-
-	input = "echo \"hello\" \"world\""
-	expected = []string{"echo", "hello", "world"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-
-	input = "echo \"shell's test\""
-	expected = []string{"echo", "shell's test"}
-	result = ParseInput(input)
-
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("ParseInput(%q) = %v, expected %v", input, result, expected)
-	}
-
+	AssertParse("echo \"shell's test\"", []string{"echo", "shell's test"}, t)
 }
 
 func TestBackslashParse(t *testing.T)  {

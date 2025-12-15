@@ -13,6 +13,12 @@ type parseContext struct{
 	escape bool
 }
 
+type ParsedArgs struct{
+	commandName string
+	arguments []string
+}
+
+
 func (c *parseContext) normalRead(char rune) {
 	if c.escape {
 		c.currentArg = append(c.currentArg, char)
@@ -77,7 +83,7 @@ func (c *parseContext) doubleQuoteRead(char rune) {
 	//fmt.Printf("DOUBLE Append '%v'\n", string(char))
 	c.currentArg = append(c.currentArg, char)
 }
-func ParseInput(input string) []string {
+func ParseInput(input string) ParsedArgs {
 	trimmed_input, _ := strings.CutSuffix(input, "\n")
 	//fmt.Println(trimmed_input)
 	
@@ -99,7 +105,17 @@ func ParseInput(input string) []string {
 	}
 
 	context.args = append(context.args, string(context.currentArg))
-	return context.args
+
+	commandName := context.args[0]
+	commandArguments := make([]string, 0)
+	if len(context.args) > 1 {
+		commandArguments = context.args[1:len(context.args)-1]
+	}
+
+	return ParsedArgs{
+		commandName,
+		commandArguments,
+	} 
 }
 
 
