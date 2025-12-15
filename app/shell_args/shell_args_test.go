@@ -11,12 +11,12 @@ func AssertParse(input string, expected []string, t *testing.T) {
 	command := expected[0]
 	arguments := make([]string, 0)
 	if len(expected) > 1 {
-		arguments = expected[1:len(expected)-1]
+		arguments = expected[1:]
 	}
-	if !reflect.DeepEqual(result.arguments, arguments) || result.commandName != command {
+	if !reflect.DeepEqual(result.Arguments, arguments) || result.CommandName != command {
 		t.Errorf("ParseInput(%q)", input)
-		t.Errorf("Command = %v, expected %v", result.commandName, command)
-		t.Errorf("Arguments = %v, expected %v", result.arguments, arguments)
+		t.Errorf("Command = %v, expected %v", result.CommandName, command)
+		t.Errorf("Arguments = %v, expected %v", result.Arguments, arguments)
 		t.Errorf("---")
 	}
 }

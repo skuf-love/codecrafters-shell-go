@@ -14,8 +14,8 @@ type parseContext struct{
 }
 
 type ParsedArgs struct{
-	commandName string
-	arguments []string
+	CommandName string
+	Arguments []string
 }
 
 
@@ -109,7 +109,7 @@ func ParseInput(input string) ParsedArgs {
 	commandName := context.args[0]
 	commandArguments := make([]string, 0)
 	if len(context.args) > 1 {
-		commandArguments = context.args[1:len(context.args)-1]
+		commandArguments = context.args[1:]
 	}
 
 	return ParsedArgs{

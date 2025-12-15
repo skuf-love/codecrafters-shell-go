@@ -82,11 +82,22 @@ func main() {
 			os.Exit(1)
 		}
 
-		// split_input := strings.Split(trimmed_input, " ")
-		split_input := shell_args.ParseInput(input)
+		parsedInput := shell_args.ParseInput(input)
 
-		cmd_name := split_input[0]
-		args := split_input[1:len(split_input)]
+		cmd_name := parsedInput.CommandName
+		args := parsedInput.Arguments
+
+		//if len(args) > 1 && strings.HasSuffix(args[len(args)-2], ">") {
+		//	fmt.Printf("Args: %v\n", args)
+		//	stdout_path := args[len(args)-1]
+		//	fmt.Printf("Args: %v\n", stdout_path)
+		//	stdout, _ := os.Create(stdout_path)
+
+		//	stdout.WriteString("test file write")
+		//	stdout.Close()
+		//	args = args[0:len(args)-2]
+		//	fmt.Printf("Args withot stdout redirect : %v\n", args)
+		//}
 
 		cmd, cmd_map_ok := cmdMap[cmd_name]
 		
