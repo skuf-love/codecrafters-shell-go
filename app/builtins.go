@@ -12,54 +12,52 @@ func exitExecutable(shell_args.ParsedArgs) []byte{
 	return make([]byte, 0)
 }
 func echoExecutable(cmdArgs shell_args.ParsedArgs) []byte{
-	output := make([]byte, 0)
-	fmt.Println(strings.Join(cmdArgs.Arguments, " "))
-	return output 
+	output := fmt.Sprintln(strings.Join(cmdArgs.Arguments, " "))
+	return []byte(output)
 }
 
 func typeExecutable(cmdArgs shell_args.ParsedArgs) []byte {
-	output := make([]byte, 0)
+	output := ""
 	cmd, ok := cmdMap[cmdArgs.Arguments[0]]
 	if ok {
 		if cmd.builtIn {
-			fmt.Println(cmd.name + " is a shell builtin")
+			output = fmt.Sprintln(cmd.name + " is a shell builtin")
 		} else {
-			fmt.Println(cmd.name + " is " + cmd.path)
+			output = fmt.Sprintln(cmd.name + " is " + cmd.path)
 		}
-		return output
+	}else{
+		output = fmt.Sprintln(cmdArgs.Arguments[0] + ": not found")
 	}
-	fmt.Println(cmdArgs.Arguments[0] + ": not found")
-	return output 
+	return []byte(output)
 }
 func cdExecutable(cmdArgs shell_args.ParsedArgs) []byte{
-	output := make([]byte, 0)
+	output := ""
 	path := cmdArgs.Arguments[0]
 	if path == "~" {
 		path = os.Getenv("HOME")
 	}
 	stat, err := os.Stat(path)
 	if err != nil {
-		fmt.Printf("cd: %v: No such file or directory\n" ,path)
-		// fmt.Printf("%v\n", err)
-		return output
+		output = fmt.Sprintf("cd: %v: No such file or directory\n" ,path)
+		return []byte(output)
 	}
 	if !stat.IsDir() {
-		fmt.Printf("%v\n", err)
-		return output
+		output = fmt.Sprintf("%v\n", err)
+		return []byte(output)
 	}
 	err = os.Chdir(path)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
-	return output
+	return []byte(output)
 }
 func pwdExecutable(shell_args.ParsedArgs)  []byte{
-	output := make([]byte, 0)
+	output := ""
 	wd, err := os.Getwd()
 	if err != nil {
-		fmt.Printf("%v", err)
+		output = fmt.Sprintf("%v", err)
 	}
-	fmt.Println(wd) 
-	return output
+	output = fmt.Sprintln(wd) 
+	return []byte(output)
 }
 

@@ -55,20 +55,23 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 var cmdMap map[string]Executable
 
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
+	output := make([]byte, 0)
+	var err error
 	if ex.builtIn {
-		output := ex.executable(cmdArgs)
-		if output != nil {
-			fmt.Print(string(output))
+		builtinOutput := ex.executable(cmdArgs)
+		if builtinOutput != nil {
+			output = builtinOutput
 		}
+		fmt.Printf("%s", string(output))
 	} else {
 		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
 
-		output, err := cmd.CombinedOutput()
+		output, err = cmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 		}
-		
 		fmt.Printf("%s", string(output))
+		
 	}
 }
 func main() {
