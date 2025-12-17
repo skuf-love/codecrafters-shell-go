@@ -62,3 +62,27 @@ func TestDoubleQuoteBackslashParse(t *testing.T)  {
 	AssertParse("echo \"hello\\\"insidequotes\"script\\\"", []string{"echo", "hello\"insidequotesscript\""}, t)
 }
 
+func TestStdout(t *testing.T) {
+
+	result := ParseInput("echo hello 1> file.txt")
+
+
+
+	if result.StdoutPath != "file.txt" {
+		t.Errorf("Expected stdoutPath: %v; Result: %v", "file.txt", result.StdoutPath)
+	}
+	if  !result.isStdoutRedirected() {
+		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.isStdoutRedirected())
+	}
+
+	result = ParseInput("echo hello > file2.txt")
+
+	if result.StdoutPath != "file2.txt" {
+		t.Errorf("Expected stdoutPath: %v; Result: %v", "file2.txt", result.StdoutPath)
+	}
+	if  !result.isStdoutRedirected() {
+		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.isStdoutRedirected())
+	}
+
+}
+

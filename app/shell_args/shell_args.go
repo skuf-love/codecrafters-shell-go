@@ -16,6 +16,11 @@ type parseContext struct{
 type ParsedArgs struct{
 	CommandName string
 	Arguments []string
+	StdoutPath string
+}
+
+func (pa ParsedArgs) isStdoutRedirected() bool {
+	return len(pa.StdoutPath) > 0
 }
 
 
@@ -108,13 +113,23 @@ func ParseInput(input string) ParsedArgs {
 
 	commandName := context.args[0]
 	commandArguments := make([]string, 0)
+	stdoutPath := ""
 	if len(context.args) > 1 {
 		commandArguments = context.args[1:]
+		if len(commandArguments) > 1 {
+			symIndex := len(commandArguments) - 2
+			stdoutPathIndex := len(commandArguments) - 1
+			if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
+				stdoutPath = commandArguments[stdoutPathIndex]
+				commandArguments = commandArguments[0:(stdoutPathIndex+1)]
+			}
+		}
 	}
 
 	return ParsedArgs{
 		commandName,
 		commandArguments,
+		stdoutPath,
 	} 
 }
 
