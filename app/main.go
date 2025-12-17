@@ -53,15 +53,35 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 }
 var cmdMap map[string]Executable
 
-func (ex Executable) Run(args []string){
-	cmd := exec.Command(ex.name, args...)
+func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
+	if ex.builtIn {
+		if ex.name == "exit"{
+			exitExecutable(cmdArgs)
+		}
 
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		if ex.name == "echo" {
+			echoExecutable(cmdArgs)
+		}
+
+		if ex.name == "type" {
+			typeExecutable(cmdArgs)
+		}
+		if ex.name == "pwd" {
+			pwdExecutable(cmdArgs)
+		}
+		if ex.name == "cd" {
+			cdExecutable(cmdArgs)
+		}
+	} else {
+		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
+
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		}
+		
+		fmt.Printf("%s", string(output))
 	}
-	
-	fmt.Printf("%s", string(output))
 }
 func main() {
 
@@ -85,7 +105,6 @@ func main() {
 		parsedInput := shell_args.ParseInput(input)
 
 		cmd_name := parsedInput.CommandName
-		args := parsedInput.Arguments
 
 		cmd, cmd_map_ok := cmdMap[cmd_name]
 		
@@ -94,29 +113,8 @@ func main() {
 			continue
 		}
 
-		if cmd.name == "exit"{
-			exitExecutable(parsedInput)
-		}
 
-		if cmd.name == "echo" {
-			echoExecutable(parsedInput)
-			continue
-		}
-
-		if cmd.name == "type" {
-			typeExecutable(parsedInput)
-			continue
-		}
-		if cmd.name == "pwd" {
-			pwdExecutable(parsedInput)
-			continue
-		}
-		if cmd.name == "cd" {
-			cdExecutable(parsedInput)
-			continue
-		}
-
-		cmd.Run(args)
+		cmd.Run(parsedInput)
 
 	}
 }
