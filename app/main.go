@@ -14,6 +14,7 @@ type Executable struct {
 	name string
 	builtIn bool
 	path string
+	executable func(shell_args.ParsedArgs)
 }
 
 
@@ -45,7 +46,7 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 			}
 			mode := fileInfo.Mode()
 			if mode.IsRegular() && mode.Perm()&0111 != 0 {
-				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath}
+				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath, func(shell_args.ParsedArgs){},}
 			}
 		}
 	}
@@ -55,23 +56,7 @@ var cmdMap map[string]Executable
 
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	if ex.builtIn {
-		if ex.name == "exit"{
-			exitExecutable(cmdArgs)
-		}
-
-		if ex.name == "echo" {
-			echoExecutable(cmdArgs)
-		}
-
-		if ex.name == "type" {
-			typeExecutable(cmdArgs)
-		}
-		if ex.name == "pwd" {
-			pwdExecutable(cmdArgs)
-		}
-		if ex.name == "cd" {
-			cdExecutable(cmdArgs)
-		}
+		ex.executable(cmdArgs)
 	} else {
 		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
 
@@ -88,11 +73,11 @@ func main() {
 	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
 
-	cmdMap["exit"] = Executable{"exit", true, "builtin",}
-	cmdMap["echo"] = Executable{"echo",  true, "builtin",}
-	cmdMap["type"] = Executable{"type", true, "builtin",}
-	cmdMap["pwd"] = Executable{"pwd", true, "builtin",}
-	cmdMap["cd"] = Executable{"cd", true, "builtin",}
+	cmdMap["exit"] = Executable{"exit", true, "builtin", exitExecutable,}
+	cmdMap["echo"] = Executable{"echo",  true, "builtin", echoExecutable,}
+	cmdMap["type"] = Executable{"type", true, "builtin", typeExecutable,}
+	cmdMap["pwd"] = Executable{"pwd", true, "builtin", pwdExecutable,}
+	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
 
 	for {
 		fmt.Print("$ ")
