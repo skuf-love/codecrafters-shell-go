@@ -71,8 +71,8 @@ func TestStdout(t *testing.T) {
 	if result.StdoutPath != "file.txt" {
 		t.Errorf("Expected stdoutPath: %v; Result: %v", "file.txt", result.StdoutPath)
 	}
-	if  !result.isStdoutRedirected() {
-		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.isStdoutRedirected())
+	if  !result.IsStdoutRedirected() {
+		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.IsStdoutRedirected())
 	}
 
 	result = ParseInput("echo hello > file2.txt")
@@ -80,12 +80,37 @@ func TestStdout(t *testing.T) {
 	if result.StdoutPath != "file2.txt" {
 		t.Errorf("Expected stdoutPath: %v; Result: %v", "file2.txt", result.StdoutPath)
 	}
-	if  !result.isStdoutRedirected() {
-		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.isStdoutRedirected())
+	if  !result.IsStdoutRedirected() {
+		t.Errorf("Expected IsStdoutRedirected to be true but got %v", result.IsStdoutRedirected())
 	}
 
 	AssertParse("echo \"hello\\\"insidequotes\"script\\\" > test", []string{"echo", "hello\"insidequotesscript\""}, t)
 	AssertParse("echo hello there > test", []string{"echo", "hello", "there"}, t)
 	AssertParse("echo  > test", []string{"echo"}, t)
+}
+
+func TestStderr(t *testing.T) {
+
+	result := ParseInput("echo hello 2> file.txt")
+
+	if result.StderrPath != "file.txt" {
+		t.Errorf("Expected stderrPath: %v; Result: %v", "file.txt", result.StderrPath)
+	}
+	if  !result.IsStderrRedirected() {
+		t.Errorf("Expected isStderrRedirected to be true but got %v", result.IsStderrRedirected())
+	}
+
+	result = ParseInput("echo hello 2> file2.txt")
+
+	if result.StderrPath != "file2.txt" {
+		t.Errorf("Expected stderrPath: %v; Result: %v", "file2.txt", result.StderrPath)
+	}
+	if  !result.IsStderrRedirected() {
+		t.Errorf("Expected IsStderrRedirected to be true but got %v", result.IsStderrRedirected())
+	}
+
+	AssertParse("echo \"hello\\\"insidequotes\"script\\\" 2> test", []string{"echo", "hello\"insidequotesscript\""}, t)
+	AssertParse("echo hello there 2> test", []string{"echo", "hello", "there"}, t)
+	AssertParse("echo 2> test", []string{"echo"}, t)
 }
 

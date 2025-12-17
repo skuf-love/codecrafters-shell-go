@@ -17,10 +17,15 @@ type ParsedArgs struct{
 	CommandName string
 	Arguments []string
 	StdoutPath string
+	StderrPath string
 }
 
 func (pa ParsedArgs) IsStdoutRedirected() bool {
 	return len(pa.StdoutPath) > 0
+}
+
+func (pa ParsedArgs) IsStderrRedirected() bool {
+	return len(pa.StderrPath) > 0
 }
 
 
@@ -113,24 +118,50 @@ func ParseInput(input string) ParsedArgs {
 
 	commandName := context.args[0]
 	commandArguments := make([]string, 0)
-	stdoutPath := ""
 	if len(context.args) > 1 {
 		commandArguments = context.args[1:]
-		if len(commandArguments) > 1 {
-			symIndex := len(commandArguments) - 2
-			stdoutPathIndex := len(commandArguments) - 1
-			if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
-				stdoutPath = commandArguments[stdoutPathIndex]
-				commandArguments = commandArguments[0:(symIndex)]
-			}
-		}
 	}
+	commandArguments, stdoutPath, stderrPath := parseRedirects(commandArguments)
+	//if len(context.args) > 1 {
+	//	commandArguments = context.args[1:]
+	//	if len(commandArguments) > 1 {
+	//		symIndex := len(commandArguments) - 2
+	//		stdoutPathIndex := len(commandArguments) - 1
+	//		if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
+	//			stdoutPath = commandArguments[stdoutPathIndex]
+	//			commandArguments = commandArguments[0:(symIndex)]
+	//		}
+	//	}
+	//}
 
 	return ParsedArgs{
 		commandName,
 		commandArguments,
 		stdoutPath,
+		stderrPath,
 	} 
 }
 
+func parseRedirects(commandArguments []string) ([]string, string, string) {
+	stdoutPath, stderrPath := "", ""
+	var symIndex, pathIndex int
+
+	for {
+		if len(commandArguments) < 2 {
+			break
+		}
+		symIndex = len(commandArguments) - 2
+		pathIndex = len(commandArguments) - 1
+		if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
+			stdoutPath = commandArguments[pathIndex]
+			commandArguments = commandArguments[0:(symIndex)]
+		} else if commandArguments[symIndex] == "2>" {
+			stderrPath = commandArguments[pathIndex]
+			commandArguments = commandArguments[0:(symIndex)]
+		} else {
+			break
+		}
+	}
+	return commandArguments, stdoutPath, stderrPath
+}
 
