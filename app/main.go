@@ -87,18 +87,6 @@ func main() {
 		cmd_name := parsedInput.CommandName
 		args := parsedInput.Arguments
 
-		//if len(args) > 1 && strings.HasSuffix(args[len(args)-2], ">") {
-		//	fmt.Printf("Args: %v\n", args)
-		//	stdout_path := args[len(args)-1]
-		//	fmt.Printf("Args: %v\n", stdout_path)
-		//	stdout, _ := os.Create(stdout_path)
-
-		//	stdout.WriteString("test file write")
-		//	stdout.Close()
-		//	args = args[0:len(args)-2]
-		//	fmt.Printf("Args withot stdout redirect : %v\n", args)
-		//}
-
 		cmd, cmd_map_ok := cmdMap[cmd_name]
 		
 		if cmd_map_ok != true {
@@ -107,24 +95,24 @@ func main() {
 		}
 
 		if cmd.name == "exit"{
-			exitExecutable()
+			exitExecutable(parsedInput)
 		}
 
 		if cmd.name == "echo" {
-			echoExecutable(args)
+			echoExecutable(parsedInput)
 			continue
 		}
 
 		if cmd.name == "type" {
-			typeExecutable(args)
+			typeExecutable(parsedInput)
 			continue
 		}
 		if cmd.name == "pwd" {
-			pwdExecutable()
+			pwdExecutable(parsedInput)
 			continue
 		}
 		if cmd.name == "cd" {
-			cdExecutable(args[0])
+			cdExecutable(parsedInput)
 			continue
 		}
 

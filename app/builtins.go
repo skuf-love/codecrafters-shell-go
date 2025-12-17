@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"github.com/codecrafters-io/shell-starter-go/app/shell_args"
 )
 
-func exitExecutable() {
+func exitExecutable(shell_args.ParsedArgs) {
 	os.Exit(0)
 }
-func echoExecutable(cmdArgs []string) {
-	fmt.Println(strings.Join(cmdArgs, " "))
+func echoExecutable(cmdArgs shell_args.ParsedArgs) {
+	fmt.Println(strings.Join(cmdArgs.Arguments, " "))
 }
 
-func typeExecutable(cmdArgs []string) {
-	cmd, ok := cmdMap[cmdArgs[0]]
+func typeExecutable(cmdArgs shell_args.ParsedArgs) {
+	cmd, ok := cmdMap[cmdArgs.Arguments[0]]
 	if ok {
 		if cmd.builtIn {
 			fmt.Println(cmd.name + " is a shell builtin")
@@ -23,9 +24,10 @@ func typeExecutable(cmdArgs []string) {
 		}
 		return
 	}
-	fmt.Println(cmdArgs[0] + ": not found")
+	fmt.Println(cmdArgs.Arguments[0] + ": not found")
 }
-func cdExecutable(path string) {
+func cdExecutable(cmdArgs shell_args.ParsedArgs) {
+	path := cmdArgs.Arguments[0]
 	if path == "~" {
 		path = os.Getenv("HOME")
 	}
@@ -44,7 +46,7 @@ func cdExecutable(path string) {
 		fmt.Printf("%v\n", err)
 	}
 }
-func pwdExecutable() {
+func pwdExecutable(shell_args.ParsedArgs) {
 	wd, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("%v", err)
