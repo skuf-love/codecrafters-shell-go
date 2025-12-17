@@ -121,7 +121,7 @@ func ParseInput(input string) ParsedArgs {
 			stdoutPathIndex := len(commandArguments) - 1
 			if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
 				stdoutPath = commandArguments[stdoutPathIndex]
-				commandArguments = commandArguments[0:(stdoutPathIndex+1)]
+				commandArguments = commandArguments[0:(symIndex)]
 			}
 		}
 	}

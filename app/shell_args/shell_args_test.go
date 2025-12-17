@@ -84,5 +84,8 @@ func TestStdout(t *testing.T) {
 		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.isStdoutRedirected())
 	}
 
+	AssertParse("echo \"hello\\\"insidequotes\"script\\\" > test", []string{"echo", "hello\"insidequotesscript\""}, t)
+	AssertParse("echo hello there > test", []string{"echo", "hello", "there"}, t)
+	AssertParse("echo  > test", []string{"echo"}, t)
 }
 
