@@ -94,6 +94,7 @@ func (c ShellTestContext) tearDown() {
 	stderrBytes, err := io.ReadAll(c.stderr)
 	stdoutBytes, err := io.ReadAll(c.stdout)
 
+
 	if err := c.cmd.Wait(); err != nil {
 		c.t.Fatalf("command failed: %s", err)
 	}
@@ -101,15 +102,10 @@ func (c ShellTestContext) tearDown() {
 	if err != nil {
 		c.t.Fatal(err)
 	}
-
-
-	if err != nil {
-		c.t.Fatal(err)
-	}
 	
+
+
 	fmt.Printf("%v",string(stdoutBytes))
-
-
 	if len(stderrBytes) > 0 {
 		c.t.Logf("Stderr: %s", string(stderrBytes))
 	}
@@ -201,5 +197,17 @@ func TestEcho(t *testing.T) {
 
 	context.assertCmd("echo 'hello   world'\n", "hello   world")
 
+	context.tearDown()
+}
+
+func TestStdout(t *testing.T) {
+	context := InitTest(t)
+
+	// echo hello 1> file.txt
+	context.sendInput("echo hello 1> file.txt\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("cat file.txt\n", "hello")
+//	os.Remove("file.txt")
+	// echo hello > file.txt
 	context.tearDown()
 }

@@ -14,7 +14,7 @@ type Executable struct {
 	name string
 	builtIn bool
 	path string
-	executable func(shell_args.ParsedArgs)
+	executable func(shell_args.ParsedArgs) []byte
 }
 
 
@@ -46,7 +46,7 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 			}
 			mode := fileInfo.Mode()
 			if mode.IsRegular() && mode.Perm()&0111 != 0 {
-				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath, func(shell_args.ParsedArgs){},}
+				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath, func(shell_args.ParsedArgs) []byte { return make([]byte, 0)},}
 			}
 		}
 	}
@@ -56,7 +56,10 @@ var cmdMap map[string]Executable
 
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	if ex.builtIn {
-		ex.executable(cmdArgs)
+		output := ex.executable(cmdArgs)
+		if output != nil {
+			fmt.Print(string(output))
+		}
 	} else {
 		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
 
