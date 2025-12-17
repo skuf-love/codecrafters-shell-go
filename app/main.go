@@ -7,7 +7,7 @@ import (
 	"strings"
 	"os/exec"
 	"github.com/codecrafters-io/shell-starter-go/app/shell_args"
-	"io"
+	"bytes"
 )
 
 
@@ -57,6 +57,7 @@ var cmdMap map[string]Executable
 
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	output := make([]byte, 0)
+	var err error
 	if ex.builtIn {
 		builtinOutput := ex.executable(cmdArgs)
 		if builtinOutput != nil {
@@ -65,34 +66,16 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	} else {
 		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
 
-		stdout, err := cmd.StdoutPipe()
-
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		}
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		}
-
-		// output, err = cmd.CombinedOutput()
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
 
 		err = cmd.Run()
 
+		output = stdout.Bytes()
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			fmt.Printf("%v", string(stderr.Bytes()))
 		}
-
-		stderrBytes, err := io.ReadAll(stderr)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		}
-		output, err = io.ReadAll(stdout)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		}
-
-		fmt.Printf("%v", string(stderrBytes))
 	}
 	if cmdArgs.IsStdoutRedirected() {
 		file, err := os.Create(cmdArgs.StdoutPath)

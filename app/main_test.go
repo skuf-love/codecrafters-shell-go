@@ -213,5 +213,14 @@ func TestStdout(t *testing.T) {
 	context.assertCmd("cat file.txt\n", "hello")
 	os.Remove("file.txt")
 
+
+
+	context.sendInput("ls -1 pig > cow/dog.md\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("cat cow/dog.md\n", "grape\norange\npear")
+	os.Remove("cow/dog.md")
+
+	context.assertCmd("cat pig/grape nonexistent 1> cow/fox.md\n", "cat: nonexistent: No such file or directory")
+
 	context.tearDown()
 }
