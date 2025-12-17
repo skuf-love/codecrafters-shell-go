@@ -62,7 +62,6 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 		if builtinOutput != nil {
 			output = builtinOutput
 		}
-		fmt.Printf("%s", string(output))
 	} else {
 		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
 
@@ -70,8 +69,21 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 		}
+	}
+	if cmdArgs.IsStdoutRedirected() {
+		file, err := os.Create(cmdArgs.StdoutPath)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+		_, err = file.Write(output)
+
+		defer file.Close()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return
+		}
+	}else{
 		fmt.Printf("%s", string(output))
-		
 	}
 }
 func main() {

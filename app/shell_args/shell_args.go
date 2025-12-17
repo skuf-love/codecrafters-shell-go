@@ -19,7 +19,7 @@ type ParsedArgs struct{
 	StdoutPath string
 }
 
-func (pa ParsedArgs) isStdoutRedirected() bool {
+func (pa ParsedArgs) IsStdoutRedirected() bool {
 	return len(pa.StdoutPath) > 0
 }
 
