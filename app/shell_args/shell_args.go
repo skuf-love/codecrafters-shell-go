@@ -18,6 +18,8 @@ type ParsedArgs struct{
 	Arguments []string
 	StdoutPath string
 	StderrPath string
+	AppendStdout bool
+	AppendStderr bool
 }
 
 func (pa ParsedArgs) IsStdoutRedirected() bool {
@@ -121,30 +123,23 @@ func ParseInput(input string) ParsedArgs {
 	if len(context.args) > 1 {
 		commandArguments = context.args[1:]
 	}
-	commandArguments, stdoutPath, stderrPath := parseRedirects(commandArguments)
-	//if len(context.args) > 1 {
-	//	commandArguments = context.args[1:]
-	//	if len(commandArguments) > 1 {
-	//		symIndex := len(commandArguments) - 2
-	//		stdoutPathIndex := len(commandArguments) - 1
-	//		if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
-	//			stdoutPath = commandArguments[stdoutPathIndex]
-	//			commandArguments = commandArguments[0:(symIndex)]
-	//		}
-	//	}
-	//}
+	commandArguments, stdoutPath, stderrPath, appendStdout, appendStderr := parseRedirects(commandArguments)
 
 	return ParsedArgs{
 		commandName,
 		commandArguments,
 		stdoutPath,
 		stderrPath,
+		appendStdout,
+		appendStderr,
 	} 
 }
 
-func parseRedirects(commandArguments []string) ([]string, string, string) {
-	stdoutPath, stderrPath := "", ""
+func parseRedirects(commandArguments []string) ([]string, string, string,
+bool, bool) {
+	stdoutPath, stderrPath, mayBeRedirect := "", "", ""
 	var symIndex, pathIndex int
+	appendStdout, appendStderr := false, false
 
 	for {
 		if len(commandArguments) < 2 {
@@ -152,16 +147,24 @@ func parseRedirects(commandArguments []string) ([]string, string, string) {
 		}
 		symIndex = len(commandArguments) - 2
 		pathIndex = len(commandArguments) - 1
-		if commandArguments[symIndex] == ">" || commandArguments[symIndex] == "1>" {
-			stdoutPath = commandArguments[pathIndex]
-			commandArguments = commandArguments[0:(symIndex)]
-		} else if commandArguments[symIndex] == "2>" {
-			stderrPath = commandArguments[pathIndex]
+		mayBeRedirect = commandArguments[symIndex]
+		if strings.HasSuffix(mayBeRedirect, ">") {
+			if strings.HasPrefix(mayBeRedirect, "2") {
+				stderrPath = commandArguments[pathIndex]
+				if strings.HasSuffix(mayBeRedirect, ">>") {
+					appendStderr = true
+				}
+			}else{
+				stdoutPath = commandArguments[pathIndex]
+				if strings.HasSuffix(mayBeRedirect, ">>") {
+					appendStdout = true
+				}
+			}
 			commandArguments = commandArguments[0:(symIndex)]
 		} else {
 			break
 		}
 	}
-	return commandArguments, stdoutPath, stderrPath
+	return commandArguments, stdoutPath, stderrPath, appendStdout, appendStderr
 }
 
