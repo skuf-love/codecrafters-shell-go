@@ -42,12 +42,10 @@ func (c *parseContext) normalRead(char rune) {
 		return
 	}
 	if char == '\'' {
-		//fmt.Printf("%v - Switching from N to S\n", string(char))
 		c.mode = "single_quote"
 		return
 	}
 	if char == '"' {
-		//fmt.Printf("%v - Switching from N to D\n", string(char))
 		c.mode = "double_quote"
 		return
 	}
@@ -58,17 +56,14 @@ func (c *parseContext) normalRead(char rune) {
 		c.args = append(c.args, string(c.currentArg))
 		c.currentArg = make([]rune, 0)
 	}else{
-		//fmt.Printf("NORMAL Append '%v'\n", string(char))
 		c.currentArg = append(c.currentArg, char)
 	}
 }
 func (c *parseContext) singleQuoteRead(char rune) {
 	if char == '\'' {
-		//fmt.Printf("%v - Switching from S to N\n", string(char))
 		c.mode = "normal"
 		return
 	}
-	//fmt.Printf("SINGLE Append '%v'\n", string(char))
 	c.currentArg = append(c.currentArg, char)
 }
 
@@ -151,14 +146,10 @@ bool, bool) {
 		if strings.HasSuffix(mayBeRedirect, ">") {
 			if strings.HasPrefix(mayBeRedirect, "2") {
 				stderrPath = commandArguments[pathIndex]
-				if strings.HasSuffix(mayBeRedirect, ">>") {
-					appendStderr = true
-				}
+				appendStderr = strings.HasSuffix(mayBeRedirect, ">>")
 			}else{
 				stdoutPath = commandArguments[pathIndex]
-				if strings.HasSuffix(mayBeRedirect, ">>") {
-					appendStdout = true
-				}
+				appendStdout = strings.HasSuffix(mayBeRedirect, ">>")
 			}
 			commandArguments = commandArguments[0:(symIndex)]
 		} else {
