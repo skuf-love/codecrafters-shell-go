@@ -78,10 +78,11 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 		file, err := PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
 		if err != nil {
 			fmt.Printf("%v\n", err)
+			return
 		}
+		defer file.Close()
 		_, err = file.Write(stdout)
 
-		defer file.Close()
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			return
@@ -95,9 +96,9 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 			fmt.Printf("%v\n", err)
 			return
 		}
+		defer errFile.Close()
 		_, err = errFile.Write(stderr)
 
-		defer errFile.Close()
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			return
@@ -110,7 +111,9 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 }
 
 func PrepareRedirectFile(path string, append bool) (*os.File, error) {
+	//fmt.Printf("preparing %v\n", path)
 	path, err := filepath.Abs(path)
+	//defer fmt.Printf("prepared %v\n", path)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +129,8 @@ func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 	if fileInfo.Mode().IsDir() {
 		return nil, fmt.Errorf("Path %q is a directory", path)
 	} else if fileInfo.Mode().IsRegular() && append {
-		return os.OpenFile(path, os.O_APPEND, 0644)
+		//fmt.Printf("Appending %v\n", path)
+		return os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
 	}else{
 		return os.Create(path)
 	}
