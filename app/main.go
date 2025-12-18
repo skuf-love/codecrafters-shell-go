@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"github.com/codecrafters-io/shell-starter-go/app/shell_args"
 	"bytes"
+	"path/filepath"
+	"errors"
 )
 
 
@@ -73,7 +75,7 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	stderr := stderrBuf.Bytes()
 
 	if cmdArgs.IsStdoutRedirected() {
-		file, err := os.Create(cmdArgs.StdoutPath)
+		file, err := PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 		}
@@ -88,9 +90,10 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 		fmt.Printf("%s", string(stdout))
 	}
 	if cmdArgs.IsStderrRedirected() {
-		errFile, err := os.Create(cmdArgs.StderrPath)
+		errFile, err := PrepareRedirectFile(cmdArgs.StderrPath, cmdArgs.AppendStderr)
 		if err != nil {
 			fmt.Printf("%v\n", err)
+			return
 		}
 		_, err = errFile.Write(stderr)
 
@@ -105,6 +108,31 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 		}
 	}
 }
+
+func PrepareRedirectFile(path string, append bool) (*os.File, error) {
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+
+	fileInfo, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return os.Create(path)
+	}else if err != nil {
+		return nil, err
+	}
+
+	if fileInfo.Mode().IsDir() {
+		return nil, fmt.Errorf("Path %q is a directory", path)
+	} else if fileInfo.Mode().IsRegular() && append {
+		return os.OpenFile(path, os.O_APPEND, 0644)
+	}else{
+		return os.Create(path)
+	}
+
+}
+
 func main() {
 
 	cmdMap = make(map[string]Executable)

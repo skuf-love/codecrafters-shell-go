@@ -203,15 +203,15 @@ func TestEcho(t *testing.T) {
 func TestStdout(t *testing.T) {
 	context := InitTest(t)
 
-	context.sendInput("echo hello 1> file.txt\n")
+	context.sendInput("echo hello 1> file1.txt\n")
 	readUntilPrompt(context.stdoutReader, context.t)
-	context.assertCmd("cat file.txt\n", "hello")
-	os.Remove("file.txt")
+	context.assertCmd("cat file1.txt\n", "hello")
+	os.Remove("file1.txt")
 
-	context.sendInput("echo hello > file.txt\n")
+	context.sendInput("echo hello > file2.txt\n")
 	readUntilPrompt(context.stdoutReader, context.t)
-	context.assertCmd("cat file.txt\n", "hello")
-	os.Remove("file.txt")
+	context.assertCmd("cat file2.txt\n", "hello")
+	os.Remove("file2.txt")
 
 
 
