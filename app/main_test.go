@@ -236,3 +236,25 @@ func TestStderr(t *testing.T) {
 
 	context.tearDown()
 }
+
+func TestStdoutErrRedirectAppend(t *testing.T) {
+	context := InitTest(t)
+
+	context.sendInput("cat pig/grape  >> stdappend.md\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.sendInput("echo ololo 1>> stdappend.md\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("cat stdappend.md\n", "grape\nololo")
+
+	os.Remove("stdappend.md")
+
+	context.sendInput("cat pig/grape nonexistent 2>> errappend.md\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.sendInput("cat pig/grape nonexistent 2>> errappend.md\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+	context.assertCmd("cat errappend.md\n", "cat: nonexistent: No such file or directory\ncat: nonexistent: No such file or directory")
+
+	os.Remove("errappend.md")
+
+	context.tearDown()
+}
