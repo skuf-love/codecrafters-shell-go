@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"bufio"
+	//"bufio"
 	"os"
 	"strings"
 	"os/exec"
@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"path/filepath"
 	"errors"
+	"github.com/chzyer/readline"
 )
 
 
@@ -139,12 +140,20 @@ func main() {
 	cmdMap["pwd"] = Executable{"pwd", true, "builtin", pwdExecutable,}
 	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
 
+	rl, err := readline.New("$ ")
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
+
 	for {
-		fmt.Print("$ ")
-		input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if read_err != nil {
-			fmt.Fprintln(os.Stderr, "Error reading input:", read_err)
-			os.Exit(1)
+		//fmt.Print("$ ")
+		//input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
+		input, err := rl.Readline()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error reading input:", err)
+			//os.Exit(1)
+			break
 		}
 
 		parsedInput := shell_args.ParseInput(input)
