@@ -56,33 +56,28 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 var cmdMap map[string]Executable
 
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
-	output := make([]byte, 0)
+	var stdoutBuf, stderrBuf bytes.Buffer
 	var err error
 	if ex.builtIn {
-		builtinOutput := ex.executable(cmdArgs)
-		if builtinOutput != nil {
-			output = builtinOutput
-		}
+		stdoutBuf.Write(ex.executable(cmdArgs))
 	} else {
 		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
 
-		var stdout, stderr bytes.Buffer
-		cmd.Stdout = &stdout
-		cmd.Stderr = &stderr
+		cmd.Stdout = &stdoutBuf
+		cmd.Stderr = &stderrBuf
 
 		err = cmd.Run()
 
-		output = stdout.Bytes()
-		if err != nil {
-			fmt.Printf("%v", string(stderr.Bytes()))
-		}
 	}
+	stdout := stdoutBuf.Bytes()
+	stderr := stderrBuf.Bytes()
+
 	if cmdArgs.IsStdoutRedirected() {
 		file, err := os.Create(cmdArgs.StdoutPath)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 		}
-		_, err = file.Write(output)
+		_, err = file.Write(stdout)
 
 		defer file.Close()
 		if err != nil {
@@ -90,7 +85,24 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 			return
 		}
 	}else{
-		fmt.Printf("%s", string(output))
+		fmt.Printf("%s", string(stdout))
+	}
+	if cmdArgs.IsStderrRedirected() {
+		errFile, err := os.Create(cmdArgs.StderrPath)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+		_, err = errFile.Write(stderr)
+
+		defer errFile.Close()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return
+		}
+	}else{
+		if err != nil {
+			fmt.Printf("%v", string(stderr))
+		}
 	}
 }
 func main() {
