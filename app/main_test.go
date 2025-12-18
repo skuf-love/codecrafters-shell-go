@@ -224,3 +224,15 @@ func TestStdout(t *testing.T) {
 
 	context.tearDown()
 }
+
+func TestStderr(t *testing.T) {
+	context := InitTest(t)
+
+	context.sendInput("cat pig/grape nonexistent 2> cow/fox.md\n")
+	readUntilPrompt(context.stdoutReader, context.t)
+
+	context.assertCmd("cat cow/fox.md\n", "cat: nonexistent: No such file or directory")
+	os.Remove("cow/fox.md")
+
+	context.tearDown()
+}
