@@ -56,9 +56,10 @@ func eatInitPrompt(reader *bufio.Reader, t *testing.T) {
  		t.Fatal(err)
 	}
 }
-func (c ShellTestContext) readUntilPrompt(reader *bufio.Reader, t *testing.T) (string, error) {
+func (c ShellTestContext) readUntilPrompt(t *testing.T) (string, error) {
 	var result strings.Builder
 
+	reader := c.stdoutReader
 	buf := make(chan byte, 1)
 	done := make(chan struct{})
 	c.log("About to start goroutine")
@@ -105,7 +106,7 @@ func (c ShellTestContext) assertCmd(input string, expectedOutput string) {
 	c.sendInput(input)
 	c.log("  AssertCmd: " + input)
 
-	output, err := c.readUntilPrompt(c.stdoutReader, c.t)
+	output, err := c.readUntilPrompt(c.t)
 
 	if err != nil {
 	    c.t.Fatalf("Failed to read initial prompt: %v", err)
@@ -191,17 +192,17 @@ func (c ShellTestContext) log(entry string){
 }
 
 func TestLocateExecutableFiles(t *testing.T) {
-	//InitTest(t)
-//	context := InitTest(t)
+	InitTest(t)
+	context := InitTest(t)
 
-//	context.assertCmd("type echo\n", "echo is a shell builtin")
-//	context.assertCmd("type type\n", "type is a shell builtin")
-//	context.assertCmd("type exit\n", "exit is a shell builtin")
-//
-//	context.assertCmd("type grep\n", "grep is /usr/bin/grep")
-//	context.assertCmd("type invalid_command\n", "invalid_command: not found")
+	context.assertCmd("type echo\n", "echo is a shell builtin")
+	context.assertCmd("type type\n", "type is a shell builtin")
+	context.assertCmd("type exit\n", "exit is a shell builtin")
 
-//	context.tearDown()
+	context.assertCmd("type grep\n", "grep is /usr/bin/grep")
+	context.assertCmd("type invalid_command\n", "invalid_command: not found")
+
+	context.tearDown()
 }
 
 func TestPwd(t *testing.T) { 
@@ -213,98 +214,94 @@ func TestPwd(t *testing.T) {
 	context.tearDown()
 }
 
-//func TestCd(t *testing.T) { 
-//	context := InitTest(t)
-//	home_path := os.Getenv("HOME")
-//
-//	context.sendInput("cd ~\n\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("pwd\n", home_path)
-//
-//	context.sendInput("cd .\n\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("pwd\n", home_path)
-//
-//	context.sendInput("cd ..\n\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("pwd\n\n", "/Users")
-//
-//	context.sendInput("cd " + home_path + "/study\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("pwd\n", home_path + "/study")
-//
-//	context.sendInput("cd go\n\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("pwd\n", home_path + "/study/go")
-//
-//	context.assertCmd("cd nope\n", "cd: nope: No such file or directory")
-//
-//	context.tearDown()
-//}
+func TestCd(t *testing.T) { 
+	c := InitTest(t)
+	home_path := os.Getenv("HOME")
 
-//func TestEcho(t *testing.T) { 
-//	context := InitTest(t)
-//
-//	context.assertCmd("echo 'hello   world'\n", "hello   world")
-//
-//	context.tearDown()
-//}
+	c.sendInput("cd ~\n")
+	c.readUntilPrompt(c.t)
+	c.assertCmd("pwd\n", home_path)
 
-//func TestStdout(t *testing.T) {
-//	context := InitTest(t)
-//
-//	context.sendInput("echo hello 1> file1.txt\n\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("cat file1.txt\n", "hello")
-//	os.Remove("file1.txt")
-//
-//	context.sendInput("echo hello > file2.txt\n\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("cat file2.txt\n", "hello")
-//	os.Remove("file2.txt")
-//
-//
-//
-//	//context.sendInput("ls -1 pig > cow/dog.md\n\n")
-//	//readUntilPrompt(context.stdoutReader, context.t)
-//	//context.assertCmd("cat cow/dog.md\n", "grape\norange\npear")
-//	//os.Remove("cow/dog.md")
-//
-//	//context.assertCmd("cat pig/grape nonexistent 1> cow/fox.md\n", "cat: nonexistent: No such file or directory")
-//
-//	context.tearDown()
-//}
-//
-//func TestStderr(t *testing.T) {
-//	context := InitTest(t)
-//
-//	context.sendInput("cat pig/grape nonexistent 2> cow/fox.md\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//
-//	context.assertCmd("cat cow/fox.md\n", "cat: nonexistent: No such file or directory")
-//	os.Remove("cow/fox.md")
-//
-//	context.tearDown()
-//}
-//
-//func TestStdoutErrRedirectAppend(t *testing.T) {
-//	context := InitTest(t)
-//
-//	context.sendInput("cat pig/grape  >> stdappend.md\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.sendInput("echo ololo 1>> stdappend.md\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("cat stdappend.md\n", "grape\nololo")
-//
-//	os.Remove("stdappend.md")
-//
-//	context.sendInput("cat pig/grape nonexistent 2>> errappend.md\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.sendInput("cat pig/grape nonexistent 2>> errappend.md\n")
-//	readUntilPrompt(context.stdoutReader, context.t)
-//	context.assertCmd("cat errappend.md\n", "cat: nonexistent: No such file or directory\ncat: nonexistent: No such file or directory")
-//
-//	os.Remove("errappend.md")
-//
-//	context.tearDown()
-//}
+	c.sendInput("cd .\n")
+	c.readUntilPrompt(c.t)
+	c.assertCmd("pwd\n", home_path)
+
+	c.sendInput("cd ..\n")
+	c.readUntilPrompt(c.t)
+	c.assertCmd("pwd\n", "/Users")
+
+	c.sendInput("cd " + home_path + "/study\n")
+	c.readUntilPrompt(c.t)
+	c.assertCmd("pwd\n", home_path + "/study")
+
+	c.sendInput("cd go\n")
+	c.readUntilPrompt(c.t)
+	c.assertCmd("pwd\n", home_path + "/study/go")
+
+	c.assertCmd("cd nope\n", "cd: nope: No such file or directory")
+
+	c.tearDown()
+}
+
+func TestEcho(t *testing.T) { 
+	context := InitTest(t)
+
+	context.assertCmd("echo 'hello   world'\n", "hello   world")
+
+	context.tearDown()
+}
+
+func TestStdout(t *testing.T) {
+	c := InitTest(t)
+
+	c.sendInput("echo hello 1> file1.txt\n")
+	c.assertCmd("cat file1.txt\n", "hello")
+	os.Remove("file1.txt")
+
+	c.sendInput("echo hello > file2.txt\n")
+	c.assertCmd("cat file2.txt\n", "hello")
+	os.Remove("file2.txt")
+
+
+
+	c.sendInput("ls -1 pig > cow/dog.md\n")
+	c.assertCmd("cat cow/dog.md\n", "grape\norange\npear")
+	os.Remove("cow/dog.md")
+
+	c.assertCmd("cat pig/grape nonexistent 1> cow/fox.md\n", "cat: nonexistent: No such file or directory")
+
+	c.tearDown()
+}
+
+func TestStderr(t *testing.T) {
+	context := InitTest(t)
+
+	context.assertCmd("cat pig/grape nonexistent 2> cow/fox.md\n", "grape")
+
+	context.assertCmd("cat cow/fox.md\n", "cat: nonexistent: No such file or directory")
+	os.Remove("cow/fox.md")
+
+	context.tearDown()
+}
+
+func TestStdoutErrRedirectAppend(t *testing.T) {
+	c := InitTest(t)
+
+	c.sendInput("cat pig/grape >> stdappend.md\n")
+	//readUntilPrompt(c.t)
+	c.sendInput("echo ololo 1>> stdappend.md\n")
+	//readUntilPrompt(c.t)
+	c.assertCmd("cat stdappend.md\n", "grape\nololo")
+
+	os.Remove("stdappend.md")
+
+	c.sendInput("cat pig/grape nonexistent 2>> errappend.md\n")
+	c.readUntilPrompt(c.t)
+	c.sendInput("cat pig/grape nonexistent 2>> errappend.md\n")
+	c.readUntilPrompt(c.t)
+	c.assertCmd("cat errappend.md\n", "cat: nonexistent: No such file or directory\ncat: nonexistent: No such file or directory")
+
+	os.Remove("errappend.md")
+
+	c.tearDown()
+}
