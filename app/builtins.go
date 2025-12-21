@@ -55,7 +55,7 @@ func pwdExecutable(shell_args.ParsedArgs)  []byte{
 	output := ""
 	wd, err := os.Getwd()
 	if err != nil {
-		output = fmt.Sprintf("%v", err)
+		output = fmt.Sprintf("%v\n", err)
 	}
 	output = fmt.Sprintln(wd) 
 	return []byte(output)
