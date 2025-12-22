@@ -128,7 +128,15 @@ func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 
 }
 
-var completer = readline.NewPrefixCompleter( readline.PcItem("echo"), readline.PcItem("exit"))
+func notFound(string) []string {
+	fmt.Print("\x07")
+	return make([]string, 0)
+}
+var completer = readline.NewPrefixCompleter(
+	readline.PcItem("echo"),
+	readline.PcItem("exit"),
+	readline.PcItemDynamic(notFound),
+)
 func main() {
 	//var termios syscall.Termios
 	//fd := int(os.Stdout.Fd())
