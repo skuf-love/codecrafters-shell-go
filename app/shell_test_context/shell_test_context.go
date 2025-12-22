@@ -43,7 +43,7 @@ func (c ShellTestContext) ReadUntilPrompt() (string, error) {
 		defer close(done)
 		for {
 			b, _ = reader.ReadByte()
-			c.log(fmt.Sprintf("Inside goroutine reading byte: %q(%v)", b, b))
+			//c.log(fmt.Sprintf("Inside goroutine reading byte: %q(%v)", b, b))
 			if err != nil {
 				c.log(fmt.Sprintf("Inside goroutine error: %v", err))
 				t.Fatal(err)
@@ -65,11 +65,11 @@ func (c ShellTestContext) ReadUntilPrompt() (string, error) {
 		select {
 		case anotherByte := <- buf:
 			result.WriteByte(anotherByte)
-		case <- time.After(200 * time.Millisecond):
+		case <- time.After(220 * time.Millisecond):
 			c.log(fmt.Sprintf("Timeout goroutine, received result: %v", result.String()))
 			c.Stdin.Write([]byte("echo %\n")) // use % symbol to signal goroutine to stop reading and finis
 			<- done
-			c.log(fmt.Sprintf("Done received: %v", result.String()))
+			//c.log(fmt.Sprintf("Done received: %v", result.String()))
 			return result.String(), nil
 		}
 	}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	//"bufio"
 	"os"
 	"strings"
 	"os/exec"
@@ -129,7 +128,24 @@ func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 
 }
 
+var completer = readline.NewPrefixCompleter( readline.PcItem("echo"), readline.PcItem("exit"))
 func main() {
+	//var termios syscall.Termios
+	//fd := int(os.Stdout.Fd())
+	//r1, _, serr := syscall.Syscall6(
+	//	syscall.SYS_IOCTL,
+	//	uintptr(fd),
+	//	syscall.TIOCGETA,  // Попытка получить настройки терминала
+	//	uintptr(unsafe.Pointer(&termios)),
+        //0, 0, 0,
+    	//)
+	//fmt.Printf("syscall.Syscall6 r1: %v", r1) 
+	//if serr == 0 {
+	//	fmt.Println("This is a TTY!")
+	//	fmt.Printf("Termios: %+v\n", termios)
+	//    } else {
+	//	fmt.Printf("Not a TTY, error: %v\n", serr)
+	//    }
 
 	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
@@ -140,7 +156,10 @@ func main() {
 	cmdMap["pwd"] = Executable{"pwd", true, "builtin", pwdExecutable,}
 	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
 
-	rl, err := readline.New("$ ")
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt: "$ ",
+		AutoComplete: completer,
+	})
 	if err != nil {
 		panic(err)
 	}
