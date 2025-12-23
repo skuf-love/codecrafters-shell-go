@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"errors"
 	"github.com/chzyer/readline"
+	"maps"
+	"slices"
 )
 
 
@@ -132,11 +134,23 @@ func notFound(string) []string {
 	fmt.Print("\x07")
 	return make([]string, 0)
 }
-var completer = readline.NewPrefixCompleter(
-	readline.PcItem("echo"),
-	readline.PcItem("exit"),
-	readline.PcItemDynamic(notFound),
-)
+//var completer = readline.NewPrefixCompleter(
+//	readline.PcItem("echo"),
+//	readline.PcItem("exit"),
+//	readline.PcItemDynamic(notFound),
+//)
+
+func PcItemsFromCmds(cmdMap map[string]Executable) []readline.PrefixCompleterInterface {
+	cmdNames := slices.Sorted(maps.Keys(cmdMap))
+	cmdCount := len(cmdNames)
+	completers := make([]readline.PrefixCompleterInterface, cmdCount)
+
+	for i, cmdName := range cmdNames {
+		completers[i] = readline.PcItem(cmdName)
+	}
+	return completers
+}
+
 func main() {
 	//var termios syscall.Termios
 	//fd := int(os.Stdout.Fd())
@@ -158,11 +172,16 @@ func main() {
 	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
 
+
 	cmdMap["exit"] = Executable{"exit", true, "builtin", exitExecutable,}
 	cmdMap["echo"] = Executable{"echo",  true, "builtin", echoExecutable,}
 	cmdMap["type"] = Executable{"type", true, "builtin", typeExecutable,}
 	cmdMap["pwd"] = Executable{"pwd", true, "builtin", pwdExecutable,}
 	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
+
+	execCompleters := PcItemsFromCmds(cmdMap)
+	execCompleters = append(execCompleters, readline.PcItemDynamic(notFound))
+	completer := readline.NewPrefixCompleter(execCompleters...)
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "$ ",
