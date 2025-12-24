@@ -151,6 +151,64 @@ func PcItemsFromCmds(cmdMap map[string]Executable) []readline.PrefixCompleterInt
 	return completers
 }
 
+type CustomPrefixCompleter struct{
+	prefixCompleter *readline.PrefixCompleter
+	tabCount int32
+	prevCandidates [][]rune
+	prevLength int
+	prevLine []rune
+}
+func (cpc *CustomPrefixCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
+	lineStr := string(line[:pos])
+	if string(cpc.prevLine) != lineStr {
+		cpc.tabCount = 0
+		cpc.prevCandidates = make([][]rune, 0)
+	}
+	cpc.tabCount++
+	cpc.prevLine = line
+ 	//fmt.Printf("Tab pressed: %v\n", cpc.tabCount)
+ 	//fmt.Printf("Prev Candidates: %q\n", cpc.prevCandidates)
+	candidates, aLen := cpc.prefixCompleter.Do(line, pos)
+ 	//fmt.Printf("Candidates: %q\n", candidates)
+	if len(candidates) > 1 {
+
+	//	fmt.Println("in if len")
+		if cpc.tabCount == 1 {
+			//fmt.Println("if tabCount")
+			fmt.Print("\x07")
+			cpc.prevCandidates = candidates
+			return make([][]rune, 0), 0 //len(lineStr)
+		}else{
+			//fmt.Println("else tabCount")
+			cpc.tabCount = 0
+			stringCandidates := make([]string, 0)
+			var expanded string
+			for _, cand := range cpc.prevCandidates {
+				expanded = lineStr + string(cand)
+				stringCandidates = append(stringCandidates, expanded)
+			}
+			fmt.Printf("\n%v\n", strings.Join(stringCandidates, " "))
+			return make([][]rune, 0), 0 //len(lineStr)
+		}
+	}else{
+
+		return candidates, aLen
+	}
+}
+
+func (cpc *CustomPrefixCompleter) Print(prefix string, level int, buf *bytes.Buffer) {
+	cpc.prefixCompleter.Print(prefix, level, buf)
+}
+func (cpc *CustomPrefixCompleter) GetName() []rune {
+	return cpc.prefixCompleter.GetName()
+}
+func (cpc *CustomPrefixCompleter) GetChildren() []readline.PrefixCompleterInterface {
+	return cpc.prefixCompleter.GetChildren()
+}
+func (cpc *CustomPrefixCompleter) SetChildren(children []readline.PrefixCompleterInterface) {
+	cpc.prefixCompleter.SetChildren(children)
+}
+
 func main() {
 	//var termios syscall.Termios
 	//fd := int(os.Stdout.Fd())
@@ -180,12 +238,13 @@ func main() {
 	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
 
 	execCompleters := PcItemsFromCmds(cmdMap)
-	execCompleters = append(execCompleters, readline.PcItemDynamic(notFound))
+	//execCompleters = append(execCompleters, readline.PcItemDynamic(notFound))
 	completer := readline.NewPrefixCompleter(execCompleters...)
+	customCompleter := &CustomPrefixCompleter{completer, 0, make([][]rune,0), int(0), make([]rune, 0)}
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "$ ",
-		AutoComplete: completer,
+		AutoComplete: customCompleter,
 	})
 	if err != nil {
 		panic(err)
