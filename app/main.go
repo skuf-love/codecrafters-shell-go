@@ -157,6 +157,7 @@ type CustomPrefixCompleter struct{
 	prevCandidates [][]rune
 	prevLength int
 	prevLine []rune
+	prompt string
 }
 func (cpc *CustomPrefixCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
 	lineStr := string(line[:pos])
@@ -166,20 +167,14 @@ func (cpc *CustomPrefixCompleter) Do(line []rune, pos int) (newLine [][]rune, le
 	}
 	cpc.tabCount++
 	cpc.prevLine = line
- 	//fmt.Printf("Tab pressed: %v\n", cpc.tabCount)
- 	//fmt.Printf("Prev Candidates: %q\n", cpc.prevCandidates)
 	candidates, aLen := cpc.prefixCompleter.Do(line, pos)
- 	//fmt.Printf("Candidates: %q\n", candidates)
 	if len(candidates) > 1 {
 
-	//	fmt.Println("in if len")
 		if cpc.tabCount == 1 {
-			//fmt.Println("if tabCount")
 			fmt.Print("\x07")
 			cpc.prevCandidates = candidates
-			return make([][]rune, 0), 0 //len(lineStr)
+			return make([][]rune, 0), 0
 		}else{
-			//fmt.Println("else tabCount")
 			cpc.tabCount = 0
 			stringCandidates := make([]string, 0)
 			var expanded string
@@ -188,7 +183,8 @@ func (cpc *CustomPrefixCompleter) Do(line []rune, pos int) (newLine [][]rune, le
 				stringCandidates = append(stringCandidates, expanded)
 			}
 			fmt.Printf("\n%v\n", strings.Join(stringCandidates, " "))
-			return make([][]rune, 0), 0 //len(lineStr)
+			fmt.Printf("%v%v", cpc.prompt, lineStr)
+			return [][]rune{}, len(lineStr)
 		}
 	}else{
 
@@ -240,7 +236,7 @@ func main() {
 	execCompleters := PcItemsFromCmds(cmdMap)
 	//execCompleters = append(execCompleters, readline.PcItemDynamic(notFound))
 	completer := readline.NewPrefixCompleter(execCompleters...)
-	customCompleter := &CustomPrefixCompleter{completer, 0, make([][]rune,0), int(0), make([]rune, 0)}
+	customCompleter := &CustomPrefixCompleter{completer, 0, make([][]rune,0), int(0), make([]rune, 0), "$ "}
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "$ ",
