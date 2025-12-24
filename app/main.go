@@ -186,8 +186,10 @@ func (cpc *CustomPrefixCompleter) Do(line []rune, pos int) (newLine [][]rune, le
 			fmt.Printf("%v%v", cpc.prompt, lineStr)
 			return [][]rune{}, len(lineStr)
 		}
+	} else if len(candidates) == 0{
+		fmt.Print("\x07")
+		return make([][]rune, 0), 0
 	}else{
-
 		return candidates, aLen
 	}
 }
