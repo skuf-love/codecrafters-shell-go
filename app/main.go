@@ -12,6 +12,7 @@ import (
 	"github.com/chzyer/readline"
 	"maps"
 	"slices"
+	"github.com/codecrafters-io/shell-starter-go/app/custom_prefix_completer"
 )
 
 
@@ -151,62 +152,6 @@ func PcItemsFromCmds(cmdMap map[string]Executable) []readline.PrefixCompleterInt
 	return completers
 }
 
-type CustomPrefixCompleter struct{
-	prefixCompleter *readline.PrefixCompleter
-	tabCount int32
-	prevCandidates [][]rune
-	prevLength int
-	prevLine []rune
-	prompt string
-}
-func (cpc *CustomPrefixCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
-	lineStr := string(line[:pos])
-	if string(cpc.prevLine) != lineStr {
-		cpc.tabCount = 0
-		cpc.prevCandidates = make([][]rune, 0)
-	}
-	cpc.tabCount++
-	cpc.prevLine = line
-	candidates, aLen := cpc.prefixCompleter.Do(line, pos)
-	if len(candidates) > 1 {
-
-		if cpc.tabCount == 1 {
-			fmt.Print("\x07")
-			cpc.prevCandidates = candidates
-			return make([][]rune, 0), 0
-		}else{
-			cpc.tabCount = 0
-			stringCandidates := make([]string, 0)
-			var expanded string
-			for _, cand := range cpc.prevCandidates {
-				expanded = lineStr + string(cand)
-				stringCandidates = append(stringCandidates, expanded)
-			}
-			fmt.Printf("\n%v\n", strings.Join(stringCandidates, " "))
-			fmt.Printf("%v%v", cpc.prompt, lineStr)
-			return [][]rune{}, len(lineStr)
-		}
-	} else if len(candidates) == 0{
-		fmt.Print("\x07")
-		return make([][]rune, 0), 0
-	}else{
-		return candidates, aLen
-	}
-}
-
-func (cpc *CustomPrefixCompleter) Print(prefix string, level int, buf *bytes.Buffer) {
-	cpc.prefixCompleter.Print(prefix, level, buf)
-}
-func (cpc *CustomPrefixCompleter) GetName() []rune {
-	return cpc.prefixCompleter.GetName()
-}
-func (cpc *CustomPrefixCompleter) GetChildren() []readline.PrefixCompleterInterface {
-	return cpc.prefixCompleter.GetChildren()
-}
-func (cpc *CustomPrefixCompleter) SetChildren(children []readline.PrefixCompleterInterface) {
-	cpc.prefixCompleter.SetChildren(children)
-}
-
 func main() {
 	//var termios syscall.Termios
 	//fd := int(os.Stdout.Fd())
@@ -238,11 +183,12 @@ func main() {
 	execCompleters := PcItemsFromCmds(cmdMap)
 	//execCompleters = append(execCompleters, readline.PcItemDynamic(notFound))
 	completer := readline.NewPrefixCompleter(execCompleters...)
-	customCompleter := &CustomPrefixCompleter{completer, 0, make([][]rune,0), int(0), make([]rune, 0), "$ "}
+	//customCompleter := &CustomPrefixCompleter{completer, 0, make([][]rune,0), int(0), make([]rune, 0), "$ "}
+	customCompleter := custom_prefix_completer.New(completer, "$ ")
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "$ ",
-		AutoComplete: customCompleter,
+		AutoComplete: &customCompleter,
 	})
 	if err != nil {
 		panic(err)
