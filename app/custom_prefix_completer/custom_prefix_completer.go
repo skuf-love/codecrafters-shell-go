@@ -30,8 +30,6 @@ func (cpc *Completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 	cpc.tabCount++
 	cpc.prevLine = line
 	candidates, aLen := cpc.prefixCompleter.Do(line, pos)
-	//fmt.Printf("\nLine: %q, len: %v\n", line, aLen)
-	//fmt.Printf("\nCandidates: %q\n", candidates)
 	candidates, aLen = cpc.TryIncrementalComplete(candidates)
 	if len(candidates) > 1 {
 
@@ -62,7 +60,6 @@ func (cpc *Completer) Do(line []rune, pos int) (newLine [][]rune, length int) {
 func (cpc *Completer) TryIncrementalComplete(candidates [][]rune) ([][]rune, int){
 
 	candidatesCount := len(candidates)
-	//fmt.Printf("\n not processed stringified candidates: %v\n", candidates)
 	if candidatesCount > 0 {
 		if len(candidates[0]) == 1 && candidates[0][0] == ' ' {
 			candidates = candidates[1:len(candidates)]
@@ -70,7 +67,6 @@ func (cpc *Completer) TryIncrementalComplete(candidates [][]rune) ([][]rune, int
 		}
 	}
 
-	//fmt.Printf("\n not stringified candidates: %v\n", candidates)
 	if candidatesCount < 2 {
 		return candidates, candidatesCount
 	}
@@ -81,18 +77,12 @@ func (cpc *Completer) TryIncrementalComplete(candidates [][]rune) ([][]rune, int
 	}
 
 	sort.Strings(stringCandidates)
-	//fmt.Printf("\n stringified candidates: %v\n", stringCandidates)
 	
-	//fmt.Printf("%q\n", stringCandidates)
 	for i := 1; i < candidatesCount; i++{
 		if !strings.HasPrefix(stringCandidates[i], stringCandidates[i-1]){
 			return candidates, candidatesCount
 		}
 	}
-	//fmt.Printf("%q\n", candidates)
-	// figure out if the pattern is present
-	//sort candidates by length ASC
-	//return array with with only first candidate
 
 	return [][]rune{[]rune(stringCandidates[0])}, 1
 }
