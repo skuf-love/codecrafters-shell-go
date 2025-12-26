@@ -11,6 +11,8 @@ type parseContext struct{
 	args []string
 	mode string
 	escape bool
+	allCommands []ParsedArgs
+	parsedArgs ParsedArgs
 }
 
 type ParsedArgs struct{
@@ -55,6 +57,8 @@ func (c *parseContext) normalRead(char rune) {
 	if char == ' ' {
 		c.args = append(c.args, string(c.currentArg))
 		c.currentArg = make([]rune, 0)
+	} else if char == '|' {
+		c.flushCommand()
 	}else{
 		c.currentArg = append(c.currentArg, char)
 	}
@@ -90,16 +94,55 @@ func (c *parseContext) doubleQuoteRead(char rune) {
 	//fmt.Printf("DOUBLE Append '%v'\n", string(char))
 	c.currentArg = append(c.currentArg, char)
 }
+
+func (c *parseContext) flushCommand(){
+	c.args = append(c.args, string(c.currentArg))
+
+	commandName := c.args[0]
+	commandArguments := make([]string, 0)
+	if len(c.args) > 1 {
+		commandArguments = c.args[1:]
+	}
+	commandArguments, stdoutPath, stderrPath, appendStdout, appendStderr := parseRedirects(commandArguments)
+	c.parsedArgs.CommandName = commandName
+	c.parsedArgs.Arguments = commandArguments
+	c.parsedArgs.StdoutPath = stdoutPath
+	c.parsedArgs.StderrPath = stderrPath
+	c.parsedArgs.AppendStdout = appendStdout
+	c.parsedArgs.AppendStderr = appendStderr
+
+	c.allCommands = append(c.allCommands, c.parsedArgs)
+
+	c.parsedArgs = newParsedArgs()
+	c.currentArg = make([]rune, 0)
+	c.args = make([]string, 0)
+	
+}
+
+func newParsedArgs() ParsedArgs{
+	return ParsedArgs{
+		"",
+		make([]string, 0),
+		"",
+		"",
+		false,
+		false,
+	}
+}
 func ParseInput(input string) ParsedArgs {
 	trimmed_input, _ := strings.CutSuffix(input, "\n")
 	//fmt.Println(trimmed_input)
 	
+	parsedArgs := newParsedArgs()
 	context := parseContext{
 		make([]rune, 0),
 		make([]string, 0),
 		"normal",
 		false,
+		make([]ParsedArgs, 0),
+		parsedArgs,
 	}
+
 	for _, char := range trimmed_input {
 		switch context.mode {
 		case "normal":
@@ -110,24 +153,27 @@ func ParseInput(input string) ParsedArgs {
 			context.doubleQuoteRead(char)
 		}
 	}
+	
+	context.flushCommand()
 
-	context.args = append(context.args, string(context.currentArg))
+	//context.args = append(context.args, string(context.currentArg))
 
-	commandName := context.args[0]
-	commandArguments := make([]string, 0)
-	if len(context.args) > 1 {
-		commandArguments = context.args[1:]
-	}
-	commandArguments, stdoutPath, stderrPath, appendStdout, appendStderr := parseRedirects(commandArguments)
+	//commandName := context.args[0]
+	//commandArguments := make([]string, 0)
+	//if len(context.args) > 1 {
+	//	commandArguments = context.args[1:]
+	//}
+	//commandArguments, stdoutPath, stderrPath, appendStdout, appendStderr := parseRedirects(commandArguments)
 
-	return ParsedArgs{
-		commandName,
-		commandArguments,
-		stdoutPath,
-		stderrPath,
-		appendStdout,
-		appendStderr,
-	} 
+	//return ParsedArgs{
+	//	commandName,
+	//	commandArguments,
+	//	stdoutPath,
+	//	stderrPath,
+	//	appendStdout,
+	//	appendStderr,
+	//} 
+	return context.allCommands[0]
 }
 
 func parseRedirects(commandArguments []string) ([]string, string, string,
