@@ -81,7 +81,6 @@ func InitTest(t *testing.T) shell_test_context.ShellTestContext {
 }
 
 func TestLocateExecutableFiles(t *testing.T) {
-	InitTest(t)
 	context := InitTest(t)
 
 	context.AssertCmd("type echo\n", "echo is a shell builtin")
