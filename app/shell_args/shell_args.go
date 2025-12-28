@@ -129,7 +129,7 @@ func newParsedArgs() ParsedArgs{
 		false,
 	}
 }
-func ParseInput(input string) ParsedArgs {
+func ParseInput(input string) []ParsedArgs {
 	trimmed_input, _ := strings.CutSuffix(input, "\n")
 	//fmt.Println(trimmed_input)
 	
@@ -173,7 +173,7 @@ func ParseInput(input string) ParsedArgs {
 	//	appendStdout,
 	//	appendStderr,
 	//} 
-	return context.allCommands[0]
+	return context.allCommands
 }
 
 func parseRedirects(commandArguments []string) ([]string, string, string,

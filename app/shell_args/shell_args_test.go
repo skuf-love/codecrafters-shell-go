@@ -6,7 +6,7 @@ import(
 )
 
 func AssertParse(input string, expected []string, t *testing.T) {
-	result := ParseInput(input)
+	result := ParseInput(input)[0]
 
 	command := expected[0]
 	arguments := make([]string, 0)
@@ -64,7 +64,7 @@ func TestDoubleQuoteBackslashParse(t *testing.T)  {
 
 func TestStdout(t *testing.T) {
 
-	result := ParseInput("echo hello 1> file.txt")
+	result := ParseInput("echo hello 1> file.txt")[0]
 
 
 
@@ -75,7 +75,7 @@ func TestStdout(t *testing.T) {
 		t.Errorf("Expected isStdoutRedirected to be true but got %v", result.IsStdoutRedirected())
 	}
 
-	result = ParseInput("echo hello > file2.txt")
+	result = ParseInput("echo hello > file2.txt")[0]
 
 	if result.StdoutPath != "file2.txt" {
 		t.Errorf("Expected stdoutPath: %v; Result: %v", "file2.txt", result.StdoutPath)
@@ -91,7 +91,7 @@ func TestStdout(t *testing.T) {
 
 func TestStderr(t *testing.T) {
 
-	result := ParseInput("echo hello 2> file.txt")
+	result := ParseInput("echo hello 2> file.txt")[0]
 
 	if result.StderrPath != "file.txt" {
 		t.Errorf("Expected stderrPath: %v; Result: %v", "file.txt", result.StderrPath)
@@ -100,7 +100,7 @@ func TestStderr(t *testing.T) {
 		t.Errorf("Expected isStderrRedirected to be true but got %v", result.IsStderrRedirected())
 	}
 
-	result = ParseInput("echo hello 2> file2.txt")
+	result = ParseInput("echo hello 2> file2.txt")[0]
 
 	if result.StderrPath != "file2.txt" {
 		t.Errorf("Expected stderrPath: %v; Result: %v", "file2.txt", result.StderrPath)

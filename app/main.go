@@ -205,7 +205,7 @@ func main() {
 			break
 		}
 
-		parsedInput := shell_args.ParseInput(input)
+		parsedInput := shell_args.ParseInput(input)[0]
 
 		cmd_name := parsedInput.CommandName
 
