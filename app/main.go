@@ -205,20 +205,38 @@ func main() {
 			break
 		}
 
-		parsedInput := shell_args.ParseInput(input)[0]
+		parsedInput := shell_args.ParseInput(input)
 
-		cmd_name := parsedInput.CommandName
+		//cmd_name := parsedInput.CommandName
 
-		cmd, cmd_map_ok := cmdMap[cmd_name]
-		
-		if cmd_map_ok != true {
-			fmt.Println(cmd_name + ": command not found")
+		//cmd, cmd_map_ok := cmdMap[cmd_name]
+		//
+		//if cmd_map_ok != true {
+		//	fmt.Println(cmd_name + ": command not found")
+		//	continue
+		//}
+
+
+		//cmd.Run(parsedInput)
+		err = runPipeline(parsedInput)
+		if err != nil {
+			fmt.Printf("%q\n", err)
 			continue
 		}
 
-
-		cmd.Run(parsedInput)
-
 	}
+}
+
+func runPipeline(commandList []shell_args.ParsedArgs) error {
+	for _, cmdArgs := range(commandList) {
+
+		cmdName := cmdArgs.CommandName
+		cmd, ok := cmdMap[cmdName]
+		if ok != true {
+			return errors.New(fmt.Sprintf("%v: command not found", cmdName))
+		}
+		cmd.Run(cmdArgs)
+	}
+	return nil
 }
 
