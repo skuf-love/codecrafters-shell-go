@@ -10,6 +10,7 @@ import (
 
 type Cmd struct{
 	name string
+	Stdin io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
 	executable func([]string) []byte
@@ -43,6 +44,10 @@ func (cmd *Cmd) Run() error{
 	cmd.Stdout.Write(result)
 	return nil
 	
+}
+
+func (c *Cmd) SetStdin(stdin io.Reader) {
+	c.Stdin = stdin
 }
 
 func (c *Cmd) SetStdout(stdout io.Writer) {

@@ -55,7 +55,12 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 			}
 			mode := fileInfo.Mode()
 			if mode.IsRegular() && mode.Perm()&0111 != 0 {
-				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath, func([]string) []byte { return make([]byte, 0)},}
+				(*binExecutables)[dirEntry.Name()] = Executable{
+					name:	dirEntry.Name(),
+					builtIn: false,
+					path: binPath,
+					executable: func([]string) []byte { return make([]byte, 0)},
+				}
 			}
 		}
 	}
@@ -65,59 +70,29 @@ var cmdMap map[string]Executable
 
 type CmdInterface interface{
 	Run() error
+	SetStdin(io.Reader)
 	SetStdout(io.Writer)
 	SetStderr(io.Writer)
 }
 
-func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
-	stdout := os.Stdout
-	stderr := os.Stderr
-	stderr = stdout
-	var err error
+func (ex Executable) Run(cmdArgs shell_args.ParsedArgs, stdin io.Reader, stdout io.Writer, stderr io.Writer){
+	//var err error
 	var cmd CmdInterface
 	if ex.builtIn {
-		//os.Stdout.Write(ex.executable(cmdArgs))
 		cmd = Command(ex.name, cmdArgs.Arguments...)
 	} else {
 		cmd = &ExecCmdWraper{exec.Command(ex.name, cmdArgs.Arguments...)}
 	}
 
-	if cmdArgs.IsStdoutRedirected() {
-		stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			return
-		}
-	}
-
-	if cmdArgs.IsStderrRedirected() {
-		stderr, err = PrepareRedirectFile(cmdArgs.StderrPath, cmdArgs.AppendStderr)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			return
-		}
-	}
-	
+	cmd.SetStdin(stdin)
 	cmd.SetStdout(stdout)
 	cmd.SetStderr(stderr)
 
-	err = cmd.Run()
+	cmd.Run()
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
 
-	if cmdArgs.IsStdoutRedirected() {
-		err = stdout.Close()
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			return
-		}
-	}
-
-	if cmdArgs.IsStderrRedirected() {
-		err = stderr.Close()
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			return
-		}
-	}
 }
 
 func PrepareRedirectFile(path string, append bool) (*os.File, error) {
@@ -148,11 +123,6 @@ func notFound(string) []string {
 	fmt.Print("\x07")
 	return make([]string, 0)
 }
-//var completer = readline.NewPrefixCompleter(
-//	readline.PcItem("echo"),
-//	readline.PcItem("exit"),
-//	readline.PcItemDynamic(notFound),
-//)
 
 func PcItemsFromCmds(cmdMap map[string]Executable) []readline.PrefixCompleterInterface {
 	cmdNames := slices.Sorted(maps.Keys(cmdMap))
@@ -225,14 +195,48 @@ func main() {
 }
 
 func runPipeline(commandList []shell_args.ParsedArgs) error {
+	var err error
+	stdin := os.Stdin
+	stdout := os.Stdout
+	stderr := os.Stderr
 	for _, cmdArgs := range(commandList) {
-
 		cmdName := cmdArgs.CommandName
 		cmd, ok := cmdMap[cmdName]
 		if ok != true {
 			return errors.New(fmt.Sprintf("%v: command not found", cmdName))
 		}
-		cmd.Run(cmdArgs)
+		stderr = stdout
+		if cmdArgs.IsStdoutRedirected() {
+			stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
+			if err != nil {
+				return err
+			}
+		}
+
+		if cmdArgs.IsStderrRedirected() {
+			stderr, err = PrepareRedirectFile(cmdArgs.StderrPath, cmdArgs.AppendStderr)
+			if err != nil {
+				return err
+			}
+		}
+	
+		cmd.Run(cmdArgs, stdin, stdout, stderr)
+
+		if cmdArgs.IsStdoutRedirected() {
+			err = stdout.Close()
+			if err != nil {
+				return err
+			}
+		}
+
+		if cmdArgs.IsStderrRedirected() {
+			err = stderr.Close()
+			if err != nil {
+				return err
+			}
+		}
+		stdout = os.Stdout
+		stderr = os.Stderr
 	}
 	return nil
 }
