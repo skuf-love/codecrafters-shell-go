@@ -15,6 +15,8 @@ type Cmd struct{
 	Stderr io.Writer
 	executable func([]string) []byte
 	args []string
+	writePipe *io.PipeWriter
+	readPipe *io.PipeReader
 }
 
 func Command(name string, args ...string) *Cmd {
@@ -32,10 +34,13 @@ func Command(name string, args ...string) *Cmd {
 		executable = pwdExecutable
 	}
 
+	rp, wp := io.Pipe()
 	return &Cmd {
 		name: name,
 		executable: executable,
 		args: args,
+		writePipe: wp,
+		readPipe: rp,
 	}
 }
 
@@ -56,6 +61,17 @@ func (c *Cmd) SetStdout(stdout io.Writer) {
 
 func (c *Cmd) SetStderr(stderr io.Writer) {
 	c.Stderr = stderr
+}
+
+func (c *Cmd) StdoutPipe() (io.ReadCloser, error){
+	return c.readPipe, nil
+}
+
+func (c *Cmd) Start() error{
+	return c.Run()
+}
+func (c *Cmd) Wait() error{
+	return nil
 }
 
 func exitExecutable([]string) []byte{

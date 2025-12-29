@@ -13,6 +13,7 @@ import (
 	"slices"
 	"github.com/codecrafters-io/shell-starter-go/app/custom_prefix_completer"
 	"io"
+	"context"
 )
 
 
@@ -73,25 +74,26 @@ type CmdInterface interface{
 	SetStdin(io.Reader)
 	SetStdout(io.Writer)
 	SetStderr(io.Writer)
+	StdoutPipe() (io.ReadCloser, error)
+	Start() error
+	Wait() error
 }
 
-func (ex Executable) Run(cmdArgs shell_args.ParsedArgs, stdin io.Reader, stdout io.Writer, stderr io.Writer){
+func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context, stdin io.Reader, stdout io.Writer, stderr io.Writer) CmdInterface{
 	//var err error
 	var cmd CmdInterface
 	if ex.builtIn {
 		cmd = Command(ex.name, cmdArgs.Arguments...)
 	} else {
-		cmd = &ExecCmdWraper{exec.Command(ex.name, cmdArgs.Arguments...)}
+		cmd = &ExecCmdWraper{exec.CommandContext(ctx, ex.name, cmdArgs.Arguments...)}
 	}
 
 	cmd.SetStdin(stdin)
 	cmd.SetStdout(stdout)
 	cmd.SetStderr(stderr)
 
-	cmd.Run()
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
+
+	return cmd
 
 }
 
@@ -199,45 +201,66 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 	stdin := os.Stdin
 	stdout := os.Stdout
 	stderr := os.Stderr
-	for _, cmdArgs := range(commandList) {
+	bgCtx := context.Background()
+	ctx, cancel := context.WithCancel(bgCtx)
+	commandsCount := len(commandList)
+	osCommands := make([]CmdInterface, commandsCount)
+
+	for i, cmdArgs := range(commandList) {
 		cmdName := cmdArgs.CommandName
 		cmd, ok := cmdMap[cmdName]
 		if ok != true {
 			return errors.New(fmt.Sprintf("%v: command not found", cmdName))
 		}
 		stderr = stdout
-		if cmdArgs.IsStdoutRedirected() {
-			stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
-			if err != nil {
-				return err
+
+		if commandsCount == 1 {
+			if cmdArgs.IsStdoutRedirected() {
+				stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
+				if err != nil {
+					return err
+				}
+				defer stdout.Close()
+			}
+
+			if cmdArgs.IsStderrRedirected() {
+				stderr, err = PrepareRedirectFile(cmdArgs.StderrPath, cmdArgs.AppendStderr)
+				if err != nil {
+					return err
+				}
+				defer stderr.Close()
 			}
 		}
 
-		if cmdArgs.IsStderrRedirected() {
-			stderr, err = PrepareRedirectFile(cmdArgs.StderrPath, cmdArgs.AppendStderr)
+		osCmd := cmd.BuildCmd(cmdArgs, ctx, stdin, stdout, stderr)
+		if i > 0 {
+			stdoutPipe, err := osCmd.StdoutPipe()
 			if err != nil {
 				return err
 			}
-		}
-	
-		cmd.Run(cmdArgs, stdin, stdout, stderr)
-
-		if cmdArgs.IsStdoutRedirected() {
-			err = stdout.Close()
-			if err != nil {
-				return err
-			}
+			osCmd.SetStdin(stdoutPipe)
 		}
 
-		if cmdArgs.IsStderrRedirected() {
-			err = stderr.Close()
-			if err != nil {
-				return err
-			}
-		}
-		stdout = os.Stdout
-		stderr = os.Stderr
+		osCommands[i] = osCmd
 	}
+
+
+	done := make(chan struct{})
+	for i, osCmd := range osCommands {
+		osCmd.Start()
+
+		go func(){
+			osCmd.Wait()
+			if i == len(osCommands) - 1 {
+				cancel()
+				close(done)
+			}
+		}()
+
+
+	}
+
+	<- done
 	return nil
 }
 
