@@ -186,7 +186,7 @@ func main() {
 
 		err = runPipeline(parsedInput)
 		if err != nil {
-			fmt.Printf("%q\n", err)
+			fmt.Println(err)
 			continue
 		}
 
