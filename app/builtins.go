@@ -4,21 +4,67 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"github.com/codecrafters-io/shell-starter-go/app/shell_args"
+	//"github.com/codecrafters-io/shell-starter-go/app/shell_args"
+	"io"
 )
 
-func exitExecutable(shell_args.ParsedArgs) []byte{
+type Cmd struct{
+	name string
+	Stdout io.Writer
+	Stderr io.Writer
+	executable func([]string) []byte
+	args []string
+}
+
+func Command(name string, args ...string) *Cmd {
+	var executable func([]string) []byte
+	switch name {
+	case "exit":
+		executable = exitExecutable
+	case "echo":
+		executable = echoExecutable
+	case "type":
+		executable = typeExecutable
+	case "cd":
+		executable = cdExecutable
+	case "pwd":
+		executable = pwdExecutable
+	}
+
+	return &Cmd {
+		name: name,
+		executable: executable,
+		args: args,
+	}
+}
+
+func (cmd *Cmd) Run() error{
+	result := cmd.executable(cmd.args)
+	cmd.Stdout.Write(result)
+	return nil
+	
+}
+
+func (c *Cmd) SetStdout(stdout io.Writer) {
+	c.Stdout = stdout
+}
+
+func (c *Cmd) SetStderr(stderr io.Writer) {
+	c.Stderr = stderr
+}
+
+func exitExecutable([]string) []byte{
 	os.Exit(0)
 	return make([]byte, 0)
 }
-func echoExecutable(cmdArgs shell_args.ParsedArgs) []byte{
-	output := fmt.Sprintln(strings.Join(cmdArgs.Arguments, " "))
+func echoExecutable(args []string) []byte{
+	output := fmt.Sprintln(strings.Join(args, " "))
 	return []byte(output)
 }
 
-func typeExecutable(cmdArgs shell_args.ParsedArgs) []byte {
+func typeExecutable(args []string) []byte {
 	output := ""
-	cmd, ok := cmdMap[cmdArgs.Arguments[0]]
+	cmd, ok := cmdMap[args[0]]
 	if ok {
 		if cmd.builtIn {
 			output = fmt.Sprintln(cmd.name + " is a shell builtin")
@@ -26,13 +72,13 @@ func typeExecutable(cmdArgs shell_args.ParsedArgs) []byte {
 			output = fmt.Sprintln(cmd.name + " is " + cmd.path)
 		}
 	}else{
-		output = fmt.Sprintln(cmdArgs.Arguments[0] + ": not found")
+		output = fmt.Sprintln(args[0] + ": not found")
 	}
 	return []byte(output)
 }
-func cdExecutable(cmdArgs shell_args.ParsedArgs) []byte{
+func cdExecutable(args []string) []byte{
 	output := ""
-	path := cmdArgs.Arguments[0]
+	path := args[0]
 	if path == "~" {
 		path = os.Getenv("HOME")
 	}
@@ -51,11 +97,11 @@ func cdExecutable(cmdArgs shell_args.ParsedArgs) []byte{
 	}
 	return []byte(output)
 }
-func pwdExecutable(shell_args.ParsedArgs)  []byte{
+func pwdExecutable(args []string)  []byte{
 	output := ""
 	wd, err := os.Getwd()
 	if err != nil {
-		output = fmt.Sprintf("%v\n", err)
+		output = fmt.Sprintf("%v", err)
 	}
 	output = fmt.Sprintln(wd) 
 	return []byte(output)

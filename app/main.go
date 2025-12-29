@@ -6,13 +6,13 @@ import (
 	"strings"
 	"os/exec"
 	"github.com/codecrafters-io/shell-starter-go/app/shell_args"
-	"bytes"
 	"path/filepath"
 	"errors"
 	"github.com/chzyer/readline"
 	"maps"
 	"slices"
 	"github.com/codecrafters-io/shell-starter-go/app/custom_prefix_completer"
+	"io"
 )
 
 
@@ -20,8 +20,11 @@ type Executable struct {
 	name string
 	builtIn bool
 	path string
-	executable func(shell_args.ParsedArgs) []byte
+	executable func([]string) []byte
 }
+
+
+
 
 
 func LoadBinPaths(binExecutables *map[string]Executable)  {
@@ -52,7 +55,7 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 			}
 			mode := fileInfo.Mode()
 			if mode.IsRegular() && mode.Perm()&0111 != 0 {
-				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath, func(shell_args.ParsedArgs) []byte { return make([]byte, 0)},}
+				(*binExecutables)[dirEntry.Name()] = Executable{dirEntry.Name(), false, binPath, func([]string) []byte { return make([]byte, 0)},}
 			}
 		}
 	}
@@ -60,34 +63,58 @@ func LoadBinPaths(binExecutables *map[string]Executable)  {
 }
 var cmdMap map[string]Executable
 
+type CmdInterface interface{
+	Run() error
+	SetStdout(io.Writer)
+	SetStderr(io.Writer)
+}
+
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
-	var stdoutBuf, stderrBuf bytes.Buffer
+	stdout := os.Stdout
+	stderr := os.Stderr
 	var err error
+	var cmd CmdInterface
 	if ex.builtIn {
-		stdoutBuf.Write(ex.executable(cmdArgs))
+		//os.Stdout.Write(ex.executable(cmdArgs))
+		cmd = Command(ex.name, cmdArgs.Arguments...)
 	} else {
-		cmd := exec.Command(ex.name, cmdArgs.Arguments...)
-
-		cmd.Stdout = &stdoutBuf
-		cmd.Stderr = &stderrBuf
-
-		err = cmd.Run()
-
+		cmd = &ExecCmdWraper{exec.Command(ex.name, cmdArgs.Arguments...)}
 	}
-	stdout := stdoutBuf.Bytes()
-	stderr := stderrBuf.Bytes()
 
 	if cmdArgs.IsStdoutRedirected() {
-		DumpStream(cmdArgs.StdoutPath, cmdArgs.AppendStdout, stdout)
-	}else{
-		fmt.Printf("%s", string(stdout))
+		stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return
+		}
 	}
 
 	if cmdArgs.IsStderrRedirected() {
-		DumpStream(cmdArgs.StderrPath, cmdArgs.AppendStderr, stderr)
-	}else{
+		stderr, err = PrepareRedirectFile(cmdArgs.StderrPath, cmdArgs.AppendStderr)
 		if err != nil {
-			fmt.Printf("%v", string(stderr))
+			fmt.Printf("%v\n", err)
+			return
+		}
+	}
+	
+	cmd.SetStdout(stdout)
+	cmd.SetStderr(stderr)
+
+	err = cmd.Run()
+
+	if cmdArgs.IsStdoutRedirected() {
+		err = stdout.Close()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return
+		}
+	}
+
+	if cmdArgs.IsStderrRedirected() {
+		err = stderr.Close()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			return
 		}
 	}
 }
