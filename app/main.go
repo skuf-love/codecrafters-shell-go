@@ -119,21 +119,6 @@ func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	}
 }
 
-func DumpStream(destPath string, doAppend bool, buffer []byte) {
-	file, err := PrepareRedirectFile(destPath, doAppend)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		return
-	}
-	defer file.Close()
-	_, err = file.Write(buffer)
-
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		return
-	}
-}
-
 func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 	path, err := filepath.Abs(path)
 	if err != nil {
@@ -208,9 +193,7 @@ func main() {
 	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
 
 	execCompleters := PcItemsFromCmds(cmdMap)
-	//execCompleters = append(execCompleters, readline.PcItemDynamic(notFound))
 	completer := readline.NewPrefixCompleter(execCompleters...)
-	//customCompleter := &CustomPrefixCompleter{completer, 0, make([][]rune,0), int(0), make([]rune, 0), "$ "}
 	customCompleter := custom_prefix_completer.New(completer, "$ ")
 
 	rl, err := readline.NewEx(&readline.Config{
@@ -223,28 +206,14 @@ func main() {
 	defer rl.Close()
 
 	for {
-		//fmt.Print("$ ")
-		//input, read_err := bufio.NewReader(os.Stdin).ReadString('\n')
 		input, err := rl.Readline()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
-			//os.Exit(1)
 			break
 		}
 
 		parsedInput := shell_args.ParseInput(input)
 
-		//cmd_name := parsedInput.CommandName
-
-		//cmd, cmd_map_ok := cmdMap[cmd_name]
-		//
-		//if cmd_map_ok != true {
-		//	fmt.Println(cmd_name + ": command not found")
-		//	continue
-		//}
-
-
-		//cmd.Run(parsedInput)
 		err = runPipeline(parsedInput)
 		if err != nil {
 			fmt.Printf("%q\n", err)

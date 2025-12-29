@@ -69,7 +69,6 @@ func (c ShellTestContext) ReadUntilPrompt() (string, error) {
 			c.log(fmt.Sprintf("Timeout goroutine, received result: %v", result.String()))
 			c.Stdin.Write([]byte("echo %\n")) // use % symbol to signal goroutine to stop reading and finis
 			<- done
-			//c.log(fmt.Sprintf("Done received: %v", result.String()))
 			return result.String(), nil
 		}
 	}
