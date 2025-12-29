@@ -16,7 +16,6 @@ import (
 	"context"
 )
 
-
 type Executable struct {
 	name string
 	builtIn bool
@@ -24,11 +23,7 @@ type Executable struct {
 	executable func([]string) []byte
 }
 
-
-
-
-
-func LoadBinPaths(binExecutables *map[string]Executable)  {
+func LoadBinPaths(binExecutables *map[string]Executable) {
 	pathVar := os.Getenv("PATH")
 
 	paths := strings.Split(pathVar, ":")
@@ -80,18 +75,15 @@ type CmdInterface interface{
 }
 
 func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context) CmdInterface{
-	//var err error
 	var cmd CmdInterface
+
 	if ex.builtIn {
 		cmd = Command(ex.name, cmdArgs.Arguments...)
 	} else {
 		cmd = &ExecCmdWraper{exec.CommandContext(ctx, ex.name, cmdArgs.Arguments...)}
 	}
 
-
-
 	return cmd
-
 }
 
 func PrepareRedirectFile(path string, append bool) (*os.File, error) {
@@ -99,7 +91,6 @@ func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-
 
 	fileInfo, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
@@ -115,7 +106,6 @@ func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 	}else{
 		return os.Create(path)
 	}
-
 }
 
 func notFound(string) []string {
@@ -189,7 +179,6 @@ func main() {
 			fmt.Println(err)
 			continue
 		}
-
 	}
 }
 
@@ -203,10 +192,8 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 	commandsCount := len(commandList)
 	osCommands := make([]CmdInterface, commandsCount)
 
-	//fmt.Println("before prepare loop")
 	for i, cmdArgs := range(commandList) {
 		cmdName := cmdArgs.CommandName
-		//fmt.Printf("%v\n",cmdName)
 		cmd, ok := cmdMap[cmdName]
 		if ok != true {
 			return errors.New(fmt.Sprintf("%v: command not found", cmdName))
@@ -248,25 +235,20 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 
 		}
 
-
 		osCommands[i] = osCmd
 	}
-
 
 	done := make(chan struct{})
 	for i, osCmd := range osCommands {
 		osCmd.Start()
 
 		go func(){
-			//fmt.Printf("%v started\n", commandList[i].CommandName)
 			osCmd.Wait()
-			//fmt.Printf("%v finished\n", commandList[i].CommandName)
 			if i == len(osCommands) - 1 {
 				cancel()
 				close(done)
 			}
 		}()
-
 
 	}
 

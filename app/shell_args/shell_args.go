@@ -87,11 +87,9 @@ func (c *parseContext) doubleQuoteRead(char rune) {
 		return
 	}
 	if char == '"' {
-		//fmt.Printf("%v - Switching from D to N\n", string(char))
 		c.mode = "normal"
 		return
 	}
-	//fmt.Printf("DOUBLE Append '%v'\n", string(char))
 	c.currentArg = append(c.currentArg, char)
 }
 
@@ -133,7 +131,6 @@ func newParsedArgs() ParsedArgs{
 }
 func ParseInput(input string) []ParsedArgs {
 	trimmed_input, _ := strings.CutSuffix(input, "\n")
-	//fmt.Println(trimmed_input)
 	
 	parsedArgs := newParsedArgs()
 	context := parseContext{
@@ -158,23 +155,6 @@ func ParseInput(input string) []ParsedArgs {
 	
 	context.flushCommand()
 
-	//context.args = append(context.args, string(context.currentArg))
-
-	//commandName := context.args[0]
-	//commandArguments := make([]string, 0)
-	//if len(context.args) > 1 {
-	//	commandArguments = context.args[1:]
-	//}
-	//commandArguments, stdoutPath, stderrPath, appendStdout, appendStderr := parseRedirects(commandArguments)
-
-	//return ParsedArgs{
-	//	commandName,
-	//	commandArguments,
-	//	stdoutPath,
-	//	stderrPath,
-	//	appendStdout,
-	//	appendStderr,
-	//} 
 	return context.allCommands
 }
 
