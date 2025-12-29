@@ -79,7 +79,7 @@ type CmdInterface interface{
 	Wait() error
 }
 
-func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context, stdin io.Reader, stdout io.Writer, stderr io.Writer) CmdInterface{
+func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context) CmdInterface{
 	//var err error
 	var cmd CmdInterface
 	if ex.builtIn {
@@ -88,9 +88,6 @@ func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context
 		cmd = &ExecCmdWraper{exec.CommandContext(ctx, ex.name, cmdArgs.Arguments...)}
 	}
 
-	cmd.SetStdin(stdin)
-	cmd.SetStdout(stdout)
-	cmd.SetStderr(stderr)
 
 
 	return cmd
@@ -206,14 +203,17 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 	commandsCount := len(commandList)
 	osCommands := make([]CmdInterface, commandsCount)
 
+	//fmt.Println("before prepare loop")
 	for i, cmdArgs := range(commandList) {
 		cmdName := cmdArgs.CommandName
+		//fmt.Printf("%v\n",cmdName)
 		cmd, ok := cmdMap[cmdName]
 		if ok != true {
 			return errors.New(fmt.Sprintf("%v: command not found", cmdName))
 		}
 		stderr = stdout
 
+		osCmd := cmd.BuildCmd(cmdArgs, ctx)
 		if commandsCount == 1 {
 			if cmdArgs.IsStdoutRedirected() {
 				stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
@@ -230,16 +230,24 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 				}
 				defer stderr.Close()
 			}
+			osCmd.SetStdout(stdout)
+			osCmd.SetStderr(stderr)
+			osCmd.SetStdin(stdin)
+		}else{
+			if i > 0 {
+				stdoutPipe, err := osCommands[i-1].StdoutPipe()
+				if err != nil {
+					fmt.Printf("Cmd %v stdout pipe error: %v\n", commandList[i-1].CommandName, err.Error())
+					return err
+				}
+				osCmd.SetStdin(stdoutPipe)
+				if i == commandsCount - 1 {
+					osCmd.SetStdout(stdout)
+				}
+			}
+
 		}
 
-		osCmd := cmd.BuildCmd(cmdArgs, ctx, stdin, stdout, stderr)
-		if i > 0 {
-			stdoutPipe, err := osCmd.StdoutPipe()
-			if err != nil {
-				return err
-			}
-			osCmd.SetStdin(stdoutPipe)
-		}
 
 		osCommands[i] = osCmd
 	}
@@ -250,7 +258,9 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 		osCmd.Start()
 
 		go func(){
+			//fmt.Printf("%v started\n", commandList[i].CommandName)
 			osCmd.Wait()
+			//fmt.Printf("%v finished\n", commandList[i].CommandName)
 			if i == len(osCommands) - 1 {
 				cancel()
 				close(done)
