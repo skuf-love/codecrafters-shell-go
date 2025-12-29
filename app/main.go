@@ -72,6 +72,7 @@ type CmdInterface interface{
 func (ex Executable) Run(cmdArgs shell_args.ParsedArgs){
 	stdout := os.Stdout
 	stderr := os.Stderr
+	stderr = stdout
 	var err error
 	var cmd CmdInterface
 	if ex.builtIn {
