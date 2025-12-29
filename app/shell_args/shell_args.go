@@ -96,7 +96,9 @@ func (c *parseContext) doubleQuoteRead(char rune) {
 }
 
 func (c *parseContext) flushCommand(){
-	c.args = append(c.args, string(c.currentArg))
+	if len(c.currentArg) > 0 {
+		c.args = append(c.args, string(c.currentArg))
+	}
 
 	commandName := c.args[0]
 	commandArguments := make([]string, 0)
