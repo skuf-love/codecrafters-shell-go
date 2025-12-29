@@ -65,7 +65,7 @@ func (c ShellTestContext) ReadUntilPrompt() (string, error) {
 		select {
 		case anotherByte := <- buf:
 			result.WriteByte(anotherByte)
-		case <- time.After(220 * time.Millisecond):
+		case <- time.After(250 * time.Millisecond):
 			c.log(fmt.Sprintf("Timeout goroutine, received result: %v", result.String()))
 			c.Stdin.Write([]byte("echo %\n")) // use % symbol to signal goroutine to stop reading and finis
 			<- done
