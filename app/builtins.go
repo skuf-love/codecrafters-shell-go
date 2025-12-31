@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 	"io"
+	"context"
 )
 
 type Cmd struct{
@@ -16,8 +17,15 @@ type Cmd struct{
 	args []string
 	writePipe *io.PipeWriter
 	readPipe *io.PipeReader
+	ctx context.Context
+	done chan struct{}
 }
 
+func CommandContext(ctx context.Context, name string, args ...string) *Cmd {
+	cmd := Command(name, args...)
+	cmd.ctx = ctx
+	return cmd
+}
 func Command(name string, args ...string) *Cmd {
 	var executable func([]string) []byte
 	switch name {
@@ -67,9 +75,19 @@ func (c *Cmd) StdoutPipe() (io.ReadCloser, error){
 }
 
 func (c *Cmd) Start() error{
-	return c.Run()
+	c.done = make(chan struct{})
+	go func(){
+		result := c.executable(c.args)
+		c.Stdout.Write(result)
+		close(c.done)
+	}()
+	return nil
 }
 func (c *Cmd) Wait() error{
+
+	//fmt.Println("before c.done")
+	<- c.done
+	//fmt.Println("after c.done")
 	return nil
 }
 

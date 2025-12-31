@@ -78,7 +78,7 @@ func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context
 	var cmd CmdInterface
 
 	if ex.builtIn {
-		cmd = Command(ex.name, cmdArgs.Arguments...)
+		cmd = CommandContext(ctx, ex.name, cmdArgs.Arguments...)
 	} else {
 		cmd = &ExecCmdWraper{exec.CommandContext(ctx, ex.name, cmdArgs.Arguments...)}
 	}
