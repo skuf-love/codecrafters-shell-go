@@ -6,6 +6,7 @@ import (
 	"strings"
 	"io"
 	"context"
+	"bufio"
 )
 
 type Cmd struct{
@@ -13,10 +14,10 @@ type Cmd struct{
 	Stdin io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
-	executable func([]string) []byte
+	executable func([]string, []byte) []byte
 	args []string
-	writePipe *io.PipeWriter
-	readPipe *io.PipeReader
+	StdoutWritePipe *io.PipeWriter
+	StdoutReadPipe *io.PipeReader
 	ctx context.Context
 	done chan struct{}
 }
@@ -27,7 +28,7 @@ func CommandContext(ctx context.Context, name string, args ...string) *Cmd {
 	return cmd
 }
 func Command(name string, args ...string) *Cmd {
-	var executable func([]string) []byte
+	var executable func([]string, []byte) []byte
 	switch name {
 	case "exit":
 		executable = exitExecutable
@@ -46,13 +47,13 @@ func Command(name string, args ...string) *Cmd {
 		name: name,
 		executable: executable,
 		args: args,
-		writePipe: wp,
-		readPipe: rp,
+		StdoutWritePipe: wp,
+		StdoutReadPipe: rp,
 	}
 }
 
 func (cmd *Cmd) Run() error{
-	result := cmd.executable(cmd.args)
+	result := cmd.executable(cmd.args, make([]byte, 0))
 	cmd.Stdout.Write(result)
 	return nil
 	
@@ -71,14 +72,35 @@ func (c *Cmd) SetStderr(stderr io.Writer) {
 }
 
 func (c *Cmd) StdoutPipe() (io.ReadCloser, error){
-	return c.readPipe, nil
+	if c.Stdout != nil {
+		return nil, fmt.Errorf("Stdout is already set")
+	}
+	c.Stdout = c.StdoutWritePipe
+	return c.StdoutReadPipe, nil
 }
 
 func (c *Cmd) Start() error{
 	c.done = make(chan struct{})
 	go func(){
-		result := c.executable(c.args)
+		//read stdin 
+		reader := bufio.NewReader(c.Stdin)
+		stdin := make([]byte, reader.Buffered())
+		_, err := reader.Read(stdin)
+		if err != nil {
+			close(c.done)
+			return
+		}
+//		for  {
+//			inbyte, err := reader.ReadByte()
+//			if err != nil {
+//				break
+//			}
+//			stdin = append(stdin, inbyte)
+//		}
+		result := c.executable(c.args, stdin)
+		//fmt.Printf("Write result %v\n", result)
 		c.Stdout.Write(result)
+		c.StdoutWritePipe.Close()
 		close(c.done)
 	}()
 	return nil
@@ -91,16 +113,16 @@ func (c *Cmd) Wait() error{
 	return nil
 }
 
-func exitExecutable([]string) []byte{
+func exitExecutable([]string, []byte) []byte{
 	os.Exit(0)
 	return make([]byte, 0)
 }
-func echoExecutable(args []string) []byte{
+func echoExecutable(args []string, stdin []byte) []byte{
 	output := fmt.Sprintln(strings.Join(args, " "))
 	return []byte(output)
 }
 
-func typeExecutable(args []string) []byte {
+func typeExecutable(args []string, stdin []byte) []byte {
 	output := ""
 	cmd, ok := cmdMap[args[0]]
 	if ok {
@@ -114,7 +136,7 @@ func typeExecutable(args []string) []byte {
 	}
 	return []byte(output)
 }
-func cdExecutable(args []string) []byte{
+func cdExecutable(args []string, stdin []byte) []byte{
 	output := ""
 	path := args[0]
 	if path == "~" {
@@ -135,7 +157,7 @@ func cdExecutable(args []string) []byte{
 	}
 	return []byte(output)
 }
-func pwdExecutable(args []string)  []byte{
+func pwdExecutable(args []string, stdin []byte)  []byte{
 	output := ""
 	wd, err := os.Getwd()
 	if err != nil {

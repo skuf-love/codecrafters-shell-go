@@ -20,8 +20,11 @@ type Executable struct {
 	name string
 	builtIn bool
 	path string
-	executable func([]string) []byte
+	executable func([]string, []byte) []byte
 }
+
+func nullExecutable([]string, []byte) []byte { return make([]byte, 0)}
+
 
 func LoadBinPaths(binExecutables *map[string]Executable) {
 	pathVar := os.Getenv("PATH")
@@ -55,7 +58,7 @@ func LoadBinPaths(binExecutables *map[string]Executable) {
 					name:	dirEntry.Name(),
 					builtIn: false,
 					path: binPath,
-					executable: func([]string) []byte { return make([]byte, 0)},
+					executable: nullExecutable,
 				}
 			}
 		}
