@@ -171,6 +171,9 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			break
 		}
+		if len(input) == 0 {
+			continue
+		}
 
 		parsedInput := shell_args.ParseInput(input)
 
