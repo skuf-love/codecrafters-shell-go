@@ -14,6 +14,7 @@ import (
 	"github.com/codecrafters-io/shell-starter-go/app/custom_prefix_completer"
 	"io"
 	"context"
+	"github.com/codecrafters-io/shell-starter-go/app/my_shell_history"
 )
 
 type Executable struct {

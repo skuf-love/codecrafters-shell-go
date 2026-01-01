@@ -7,6 +7,7 @@ import (
 	"io"
 	"context"
 	"bufio"
+	"github.com/codecrafters-io/shell-starter-go/app/my_shell_history"
 )
 
 type Cmd struct{
@@ -43,6 +44,8 @@ func Command(name string, args ...string) (*Cmd, error){
 		executable = cdExecutable
 	case "pwd":
 		executable = pwdExecutable
+	case "history":
+		executable = historyExecutable
 	default:
 		return nil, fmt.Errorf("%b buildIn not defined", name)
 	}
@@ -170,5 +173,13 @@ func pwdExecutable(args []string, stdin []byte)  []byte{
 	}
 	output = fmt.Sprintln(wd) 
 	return []byte(output)
+}
+
+func historyExecutable([]string, []byte) []byte{
+	history := ""
+	for i, cmdLine := range my_shell_history.Log() {
+		history += fmt.Sprintf("    %v  %v\n", i+1, cmdLine)
+	}
+	return []byte(history)
 }
 
