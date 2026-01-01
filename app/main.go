@@ -191,6 +191,7 @@ func main() {
 			continue
 		}
 
+		my_shell_history.StoreCommand(input)
 		parsedInput := shell_args.ParseInput(input)
 
 		err = runPipeline(parsedInput)
@@ -198,7 +199,6 @@ func main() {
 			fmt.Println(err)
 			continue
 		}
-		my_shell_history.StoreCommand(input)
 	}
 }
 
