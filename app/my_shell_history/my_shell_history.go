@@ -1,8 +1,5 @@
 package my_shell_history
 
-import(
-	"fmt"
-)
 var log []string
 
 func StoreCommand(cmd string){
