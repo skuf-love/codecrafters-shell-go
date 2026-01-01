@@ -178,20 +178,22 @@ func pwdExecutable(args []string, stdin []byte)  []byte{
 
 func historyExecutable(args []string, stdin []byte) []byte{
 	history := ""
-	var log []string
+	var offset int
+	log := my_shell_history.Log()
 	if len(args) > 0 {
+		logLen := len(log)
 		n, err := strconv.Atoi(args[0])
 		if err != nil {
 			return []byte("Error")
 		}
-		log = my_shell_history.LimitedLog(n)
+		offset = logLen - n
 	}else{
-		log = my_shell_history.Log()
+		offset = 0
 	}
 
 
-	for i, cmdLine := range log{
-		history += fmt.Sprintf("    %v  %v\n", i+1, cmdLine)
+	for i, cmdLine := range log[offset:] {
+		history += fmt.Sprintf("    %v  %v\n", i + offset +1, cmdLine)
 	}
 	return []byte(history)
 }
