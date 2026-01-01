@@ -22,12 +22,15 @@ type Cmd struct{
 	done chan struct{}
 }
 
-func CommandContext(ctx context.Context, name string, args ...string) *Cmd {
-	cmd := Command(name, args...)
+func CommandContext(ctx context.Context, name string, args ...string) (*Cmd, error) {
+	cmd, err := Command(name, args...)
+	if err != nil {
+		return nil, err
+	}
 	cmd.ctx = ctx
-	return cmd
+	return cmd, nil
 }
-func Command(name string, args ...string) *Cmd {
+func Command(name string, args ...string) (*Cmd, error){
 	var executable func([]string, []byte) []byte
 	switch name {
 	case "exit":
@@ -40,6 +43,8 @@ func Command(name string, args ...string) *Cmd {
 		executable = cdExecutable
 	case "pwd":
 		executable = pwdExecutable
+	default:
+		return nil, fmt.Errorf("%b buildIn not defined", name)
 	}
 
 	rp, wp := io.Pipe()
@@ -49,7 +54,7 @@ func Command(name string, args ...string) *Cmd {
 		args: args,
 		StdoutWritePipe: wp,
 		StdoutReadPipe: rp,
-	}
+	}, nil
 }
 
 func (cmd *Cmd) Run() error{

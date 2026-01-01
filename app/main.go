@@ -25,8 +25,12 @@ type Executable struct {
 
 func nullExecutable([]string, []byte) []byte { return make([]byte, 0)}
 
-func addBuiltIn(cmdMap map[string]Executable, name string, executable func([]string, []byte) []byte) {
-	cmdMap[name] = Executable{name, true, "builtin", executable,}
+func addBuiltIn(cmdMap map[string]Executable, name string){
+	cmdMap[name] = Executable{
+		name: name, 
+		builtIn: true,
+		path: "builtin",
+	}
 }
 
 
@@ -81,16 +85,20 @@ type CmdInterface interface{
 	Wait() error
 }
 
-func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context) CmdInterface{
+func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context) (CmdInterface, error){
 	var cmd CmdInterface
+	var err error
 
 	if ex.builtIn {
-		cmd = CommandContext(ctx, ex.name, cmdArgs.Arguments...)
+		cmd, err = CommandContext(ctx, ex.name, cmdArgs.Arguments...)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		cmd = &ExecCmdWraper{exec.CommandContext(ctx, ex.name, cmdArgs.Arguments...)}
 	}
 
-	return cmd
+	return cmd, nil
 }
 
 func PrepareRedirectFile(path string, append bool) (*os.File, error) {
@@ -151,12 +159,13 @@ func main() {
 
 	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
-
-	addBuiltIn(cmdMap, "exit", exitExecutable)
-	addBuiltIn(cmdMap, "echo", echoExecutable)
-	addBuiltIn(cmdMap, "type", typeExecutable)
-	addBuiltIn(cmdMap, "pwd", pwdExecutable)
-	addBuiltIn(cmdMap, "cd", cdExecutable)
+	
+	addBuiltIn(cmdMap, "exit")
+	addBuiltIn(cmdMap, "echo")
+	addBuiltIn(cmdMap, "type")
+	addBuiltIn(cmdMap, "pwd")
+	addBuiltIn(cmdMap, "cd")
+	addBuiltIn(cmdMap, "history")
 
 	execCompleters := PcItemsFromCmds(cmdMap)
 	completer := readline.NewPrefixCompleter(execCompleters...)
@@ -188,11 +197,12 @@ func main() {
 			fmt.Println(err)
 			continue
 		}
+		my_shell_history.StoreCommand(input)
 	}
 }
 
 func runPipeline(commandList []shell_args.ParsedArgs) error {
-	var err error
+	//var err error
 	stdin := os.Stdin
 	stdout := os.Stdout
 	stderr := os.Stderr
@@ -209,7 +219,10 @@ func runPipeline(commandList []shell_args.ParsedArgs) error {
 		}
 		stderr = stdout
 
-		osCmd := cmd.BuildCmd(cmdArgs, ctx)
+		osCmd, err := cmd.BuildCmd(cmdArgs, ctx)
+		if err != nil {
+			return err
+		}
 		if commandsCount == 1 {
 			if cmdArgs.IsStdoutRedirected() {
 				stdout, err = PrepareRedirectFile(cmdArgs.StdoutPath, cmdArgs.AppendStdout)
