@@ -9,3 +9,10 @@ func StoreCommand(cmd string){
 func Log() []string {
 	return log
 }
+
+func LimitedLog(n int) []string{
+	logLen := len(log)
+	offset := logLen - n
+
+	return log[offset:]
+}

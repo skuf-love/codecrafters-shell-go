@@ -8,6 +8,7 @@ import (
 	"context"
 	"bufio"
 	"github.com/codecrafters-io/shell-starter-go/app/my_shell_history"
+	"strconv"
 )
 
 type Cmd struct{
@@ -175,9 +176,21 @@ func pwdExecutable(args []string, stdin []byte)  []byte{
 	return []byte(output)
 }
 
-func historyExecutable([]string, []byte) []byte{
+func historyExecutable(args []string, stdin []byte) []byte{
 	history := ""
-	for i, cmdLine := range my_shell_history.Log() {
+	var log []string
+	if len(args) > 0 {
+		n, err := strconv.Atoi(args[0])
+		if err != nil {
+			return []byte("Error")
+		}
+		log = my_shell_history.LimitedLog(n)
+	}else{
+		log = my_shell_history.Log()
+	}
+
+
+	for i, cmdLine := range log{
 		history += fmt.Sprintf("    %v  %v\n", i+1, cmdLine)
 	}
 	return []byte(history)
