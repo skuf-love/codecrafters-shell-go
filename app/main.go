@@ -25,6 +25,10 @@ type Executable struct {
 
 func nullExecutable([]string, []byte) []byte { return make([]byte, 0)}
 
+func addBuiltIn(cmdMap map[string]Executable, name string, executable func([]string, []byte) []byte) {
+	cmdMap[name] = Executable{name, true, "builtin", executable,}
+}
+
 
 func LoadBinPaths(binExecutables *map[string]Executable) {
 	pathVar := os.Getenv("PATH")
@@ -148,12 +152,11 @@ func main() {
 	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
 
-
-	cmdMap["exit"] = Executable{"exit", true, "builtin", exitExecutable,}
-	cmdMap["echo"] = Executable{"echo",  true, "builtin", echoExecutable,}
-	cmdMap["type"] = Executable{"type", true, "builtin", typeExecutable,}
-	cmdMap["pwd"] = Executable{"pwd", true, "builtin", pwdExecutable,}
-	cmdMap["cd"] = Executable{"cd", true, "builtin", cdExecutable,}
+	addBuiltIn(cmdMap, "exit", exitExecutable)
+	addBuiltIn(cmdMap, "echo", echoExecutable)
+	addBuiltIn(cmdMap, "type", typeExecutable)
+	addBuiltIn(cmdMap, "pwd", pwdExecutable)
+	addBuiltIn(cmdMap, "cd", cdExecutable)
 
 	execCompleters := PcItemsFromCmds(cmdMap)
 	completer := readline.NewPrefixCompleter(execCompleters...)
