@@ -10,9 +10,11 @@ import(
 )
 
 var log []string
+var logSinceAppend []string
 
 func StoreCommand(cmd string){
 	log = append(log, cmd)
+	logSinceAppend = append(logSinceAppend , cmd)
 }
 
 func Log() []string {
@@ -62,15 +64,23 @@ func ExportToFile(path string, apnd bool) error {
 		defer file.Close()
 
 		writer := bufio.NewWriter(file)
+
+		var commandsToWrite []string
+
+		if apnd {
+			commandsToWrite = logSinceAppend
+		}else{
+			commandsToWrite = log
+		}
 		
-		for _, cmd := range log{
+		for _, cmd := range commandsToWrite{
 			writer.WriteString(fmt.Sprintf("%v\n", cmd))
 		}
 		err = writer.Flush()
 		if err != nil {
 			return err
 		}
-
+		logSinceAppend = make([]string, 0)
 
 	return nil
 }
