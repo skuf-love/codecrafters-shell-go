@@ -200,7 +200,21 @@ func historyExecutable(args []string, stdin []byte) []byte{
 		}
 		pathArg := args[1]
 
-		err := my_shell_history.ExportToFile(pathArg)
+		err := my_shell_history.ExportToFile(pathArg, false)
+		if err != nil {
+			fmt.Printf("history: %v\n", err)
+		}
+		return make([]byte, 0)
+	}
+
+	if argLen > 0 && args[0] == "-a" {
+		if argLen < 2 {
+			fmt.Println("history: filepath not provided")
+			return make([]byte, 0)
+		}
+		pathArg := args[1]
+
+		err := my_shell_history.ExportToFile(pathArg, true)
 		if err != nil {
 			fmt.Printf("history: %v\n", err)
 		}

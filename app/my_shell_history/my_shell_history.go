@@ -54,17 +54,10 @@ func ImportFromFile(pathArg string) error {
 	return nil
 }
 
-func ExportToFile(pathArg string) error {
-		path, err := filepath.Abs(pathArg)
+func ExportToFile(path string, apnd bool) error {
+		file, err := prepareExportFile(path, apnd)
 		if err != nil {
-			return errors.New(fmt.Sprintf("history: filepath error: %v\n", err))
-		}
-
-		_, err = os.Stat(path)
-		file, err := os.Create(path)
-
-		if err != nil{
-			return errors.New(fmt.Sprintf("history: error open file: %v\n", err))
+			return err
 		}
 		defer file.Close()
 
@@ -80,4 +73,26 @@ func ExportToFile(pathArg string) error {
 
 
 	return nil
+}
+
+func prepareExportFile(path string, apnd bool) (*os.File, error) {
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	fileInfo, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return os.Create(path)
+	}else if err != nil {
+		return nil, err
+	}
+
+	if fileInfo.Mode().IsDir() {
+		return nil, fmt.Errorf("Path %q is a directory", path)
+	} else if fileInfo.Mode().IsRegular() && apnd {
+		return os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+	}else{
+		return os.Create(path)
+	}
 }
