@@ -1,0 +1,215 @@
+line2
+line2
+line3
+line4
+line5
+line6
+> > > Example Log Started
+Command Started
+  AssertCmd: type echo
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: 
+> > > Example Log Started
+Command Started
+  AssertCmd: type echo
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: echo is a shell builtin
+
+Inside goroutine closing the channel
+  AssertCmd: type type
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: type is a shell builtin
+
+Inside goroutine closing the channel
+  AssertCmd: type exit
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: exit is a shell builtin
+
+Inside goroutine closing the channel
+  AssertCmd: type grep
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: grep is /usr/bin/grep
+
+Inside goroutine closing the channel
+  AssertCmd: type invalid_command
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: invalid_command: not found
+
+Inside goroutine closing the channel
+< < <
+> > > Example Log Started
+Command Started
+  AssertCmd: pwd
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: /Users/kostyamalinovskiy/study/go/codecrafters-shell-go/app
+
+Inside goroutine closing the channel
+< < <
+> > > Example Log Started
+Command Started
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: 
+Inside goroutine closing the channel
+  AssertCmd: pwd
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: /Users/kostyamalinovskiy
+
+Inside goroutine closing the channel
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: 
+Inside goroutine closing the channel
+  AssertCmd: pwd
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: /Users/kostyamalinovskiy
+
+Inside goroutine closing the channel
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: 
+Inside goroutine closing the channel
+  AssertCmd: pwd
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: /Users
+
+Inside goroutine closing the channel
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: 
+Inside goroutine closing the channel
+  AssertCmd: pwd
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: /Users/kostyamalinovskiy/study
+
+Inside goroutine closing the channel
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: 
+Inside goroutine closing the channel
+  AssertCmd: pwd
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: /Users/kostyamalinovskiy/study/go
+
+Inside goroutine closing the channel
+  AssertCmd: cd nope
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: cd: nope: No such file or directory
+
+Inside goroutine closing the channel
+< < <
+> > > Example Log Started
+Command Started
+  AssertCmd: echo 'hello   world'
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: hello   world
+
+Inside goroutine closing the channel
+< < <
+> > > Example Log Started
+Command Started
+  AssertCmd: cat file1.txt
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: hello
+
+Inside goroutine closing the channel
+  AssertCmd: cat file2.txt
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: hello
+
+Inside goroutine closing the channel
+  AssertCmd: cat cow/dog.md
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: grape
+orange
+pear
+
+Inside goroutine closing the channel
+  AssertCmd: cat pig/grape nonexistent 1> cow/fox.md
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: cat: nonexistent: No such file or directory
+
+Inside goroutine closing the channel
+< < <
+> > > Example Log Started
+Command Started
+  AssertCmd: cat pig/grape nonexistent 2> cow/fox.md
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: grape
+
+Inside goroutine closing the channel
+  AssertCmd: cat cow/fox.md
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: cat: nonexistent: No such file or directory
+
+Inside goroutine closing the channel
+< < <
+> > > Example Log Started
+Command Started
+  AssertCmd: cat stdappend.md
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: grape
+ololo
+
+Inside goroutine closing the channel
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: grape
+
+Inside goroutine closing the channel
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: grape
+
+Inside goroutine closing the channel
+  AssertCmd: cat errappend.md
+
+About to start goroutine
+Goroutine started
+Timeout goroutine, received result: cat: nonexistent: No such file or directory
+cat: nonexistent: No such file or directory
+
+Inside goroutine closing the channel
+< < <

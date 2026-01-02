@@ -1,0 +1,5 @@
+START
+echo START > write_history
+echo TEST1
+echo ------
+cat write_history

@@ -191,3 +191,13 @@ func TestStdoutErrRedirectAppend(t *testing.T) {
 
 	c.TearDown()
 }
+//
+//func TestDualCommandPipeline(t *testing.T) {
+//	c := InitTest(t)
+//	
+//	//c.AssertCmd("cat ~/tmp/file | wc", "5      10      77")
+//
+//	//c.AssertCmd("il -f ~/tmp/file-1 | head -n 3", "raspberry strawberry\npear mango\npineapple apple")
+//
+//	c.TearDown()
+//}
