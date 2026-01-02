@@ -123,6 +123,7 @@ func (c *Cmd) Wait() error{
 }
 
 func exitExecutable([]string, []byte) []byte{
+	my_shell_history.Dump()
 	os.Exit(0)
 	return make([]byte, 0)
 }

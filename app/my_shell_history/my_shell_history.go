@@ -20,6 +20,15 @@ func Init(){
 		}
 	}
 }
+
+func Dump(){
+	if path, varDefined := os.LookupEnv("HISTFILE"); varDefined {
+		err := ExportToFile(path, false)
+		if err != nil {
+			fmt.Printf("Failed to export history to file: %v\n", err)
+		}
+	}
+}
 func StoreCommand(cmd string){
 	log = append(log, cmd)
 	logSinceAppend = append(logSinceAppend , cmd)
