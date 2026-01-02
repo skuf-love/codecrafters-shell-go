@@ -12,6 +12,14 @@ import(
 var log []string
 var logSinceAppend []string
 
+func Init(){
+	if path, varDefined := os.LookupEnv("HISTFILE"); varDefined {
+		err := ImportFromFile(path)
+		if err != nil {
+			fmt.Printf("Failed to read history from file: %v\n", err)
+		}
+	}
+}
 func StoreCommand(cmd string){
 	log = append(log, cmd)
 	logSinceAppend = append(logSinceAppend , cmd)
@@ -24,17 +32,17 @@ func Log() []string {
 func ImportFromFile(pathArg string) error {
 		path, err := filepath.Abs(pathArg)
 		if err != nil {
-			return errors.New(fmt.Sprintf("history: filepath error: %v\n", err))
+			return errors.New(fmt.Sprintf("history: filepath error: %v", err))
 		}
 
 		_, err = os.Stat(path)
 		if errors.Is(err, os.ErrNotExist) {
-			return errors.New(fmt.Sprintf("history: file not exists: %v\n", err))
+			return errors.New(fmt.Sprintf("history: file not exists: %v", err))
 		}
 		file, err := os.Open(path)
 
 		if err != nil{
-			return errors.New(fmt.Sprintf("history: error open file: %v\n", err))
+			return errors.New(fmt.Sprintf("history: error open file: %v", err))
 		}
 		defer file.Close()
 

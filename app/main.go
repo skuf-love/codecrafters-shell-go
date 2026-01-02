@@ -158,6 +158,7 @@ func main() {
 	//	fmt.Printf("Not a TTY, error: %v\n", serr)
 	//    }
 
+	my_shell_history.Init()
 	cmdMap = make(map[string]Executable)
 	LoadBinPaths(&cmdMap)
 	
