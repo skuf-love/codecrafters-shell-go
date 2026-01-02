@@ -53,3 +53,31 @@ func ImportFromFile(pathArg string) error {
 
 	return nil
 }
+
+func ExportToFile(pathArg string) error {
+		path, err := filepath.Abs(pathArg)
+		if err != nil {
+			return errors.New(fmt.Sprintf("history: filepath error: %v\n", err))
+		}
+
+		_, err = os.Stat(path)
+		file, err := os.Create(path)
+
+		if err != nil{
+			return errors.New(fmt.Sprintf("history: error open file: %v\n", err))
+		}
+		defer file.Close()
+
+		writer := bufio.NewWriter(file)
+		
+		for _, cmd := range log{
+			writer.WriteString(fmt.Sprintf("%v\n", cmd))
+		}
+		err = writer.Flush()
+		if err != nil {
+			return err
+		}
+
+
+	return nil
+}
