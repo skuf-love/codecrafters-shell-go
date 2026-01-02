@@ -102,7 +102,7 @@ func (ex Executable) BuildCmd(cmdArgs shell_args.ParsedArgs, ctx context.Context
 	return cmd, nil
 }
 
-func PrepareRedirectFile(path string, append bool) (*os.File, error) {
+func PrepareRedirectFile(path string, apnd bool) (*os.File, error) {
 	path, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func PrepareRedirectFile(path string, append bool) (*os.File, error) {
 
 	if fileInfo.Mode().IsDir() {
 		return nil, fmt.Errorf("Path %q is a directory", path)
-	} else if fileInfo.Mode().IsRegular() && append {
+	} else if fileInfo.Mode().IsRegular() && apnd {
 		return os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
 	}else{
 		return os.Create(path)
