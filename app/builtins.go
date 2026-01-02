@@ -9,6 +9,8 @@ import (
 	"bufio"
 	"github.com/codecrafters-io/shell-starter-go/app/my_shell_history"
 	"strconv"
+	"errors"
+	"path/filepath"
 )
 
 type Cmd struct{
@@ -177,6 +179,53 @@ func pwdExecutable(args []string, stdin []byte)  []byte{
 }
 
 func historyExecutable(args []string, stdin []byte) []byte{
+
+	argLen := len(args)
+
+	if argLen > 0 && args[0] == "-r" {
+		if argLen < 2 {
+			fmt.Println("history: filepath not provided")
+			return make([]byte, 0)
+		}
+		pathArg := args[1]
+		path, err := filepath.Abs(pathArg)
+		if err != nil {
+			fmt.Errorf("history: filepath error: %v\n", err)
+			fmt.Printf("history: filepath error: %v\n", err)
+			return make([]byte, 0)
+		}
+
+
+		_, err = os.Stat(path)
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Errorf("history: file not exists\n", err)
+			fmt.Printf("history: file not exists\n", err)
+			return make([]byte, 0)
+		}
+
+		file, err := os.Open(path)
+
+		if err != nil{
+			fmt.Errorf("history: error open file: %v\n", err)
+			fmt.Printf("history: error open file: %v\n", err)
+			return make([]byte, 0)
+		}
+		defer file.Close()
+
+		reader := bufio.NewReader(file)
+		for {
+			line , _,err := reader.ReadLine()
+			if len(line) > 0 {
+				my_shell_history.StoreCommand(string(line))
+			}
+			if err != nil{
+				return make([]byte, 0)
+			}
+		}
+		
+
+	}
+
 	history := ""
 	var offset int
 	log := my_shell_history.Log()
